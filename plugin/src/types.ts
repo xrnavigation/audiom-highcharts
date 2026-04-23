@@ -5,7 +5,10 @@
  * (Coughlan-Lab/Audiom-Front-End#1352). Where possible we re-use the types
  * from `@xrnavigation/audiom-embedder` rather than redeclaring them.
  */
-import type { AudiomMessageHandler } from '@xrnavigation/audiom-embedder';
+import type {
+  AudiomMessageHandler,
+  IAudiomSource
+} from '@xrnavigation/audiom-embedder';
 import {
   FilterMode,
   VisualStyle
@@ -13,8 +16,40 @@ import {
 
 export { FilterMode, VisualStyle };
 
-export type AudiomDisplayMode = 'tabbed' | 'component';
-export type AudiomSourceStrategy = 'auto' | 'passthrough' | 'extract';
+/**
+ * How the plugin should display the Audiom embed alongside the chart.
+ */
+export enum AudiomDisplayMode {
+  /** Tabbed UI: Highcharts on one tab, Audiom on the other. */
+  Tabbed = 'tabbed',
+  /** Caller embeds the AudiomComponent themselves; plugin renders nothing. */
+  Component = 'component'
+}
+
+/**
+ * How the plugin should produce the `sources` value handed to Audiom.
+ *
+ * Resolution order under {@link AudiomSourceStrategy.Auto}:
+ *   1. Honour user-supplied `sources`.
+ *   2. Honour `geometryUrl` if set, or detect a Highcharts CDN map name.
+ *   3. Call `uploadGeoJSON(collection)` if provided, use returned URL.
+ *   4. Extract → simplify → inline as a `data:` URI.
+ */
+export enum AudiomSourceStrategy {
+  /** Try in priority order: passthrough → URL → upload → inline. */
+  Auto = 'auto',
+  /** Forward `options.sources` verbatim; never extract. */
+  Passthrough = 'passthrough',
+  /** Use `options.geometryUrl` (or a detected Highcharts CDN URL). */
+  Url = 'url',
+  /** Hand the extracted FeatureCollection to `options.uploadGeoJSON`. */
+  Upload = 'upload',
+  /** Extract → simplify → inline as `data:application/geo+json;base64,…`. */
+  Inline = 'inline'
+}
+
+/** `[longitude, latitude]` tuple matching the embedder's `Coordinates`. */
+export type AudiomCenter = [number, number];
 
 /**
  * Per-chart Audiom plugin configuration. Attached as
@@ -34,6 +69,32 @@ export interface AudiomPluginOptions {
   filters?: string[];
   filterMode?: FilterMode;
 
+  // Data source strategy
+  /** When `passthrough` or `auto` (with sources supplied), forwarded directly to Audiom. */
+  sources?: IAudiomSource[] | string[];
+  sourceStrategy?: AudiomSourceStrategy;
+  /**
+   * Explicit URL to a TopoJSON / GeoJSON the Audiom iframe can fetch
+   * (CORS-reachable from the Audiom origin). Skips inlining entirely.
+   */
+  geometryUrl?: string;
+  /**
+   * Hook invoked when {@link AudiomSourceStrategy.Upload} (or auto) decides to
+   * hand the extracted FeatureCollection to a host-provided endpoint.
+   * Must return a URL the Audiom iframe can fetch.
+   */
+  uploadGeoJSON?: (collection: import('./geo/types').FeatureCollection) => Promise<string>;
+  /**
+   * Maximum simplification weight (in degrees²) applied to inline geometry.
+   * Higher = more aggressive smoothing. `0` disables simplification.
+   * @default 0.01
+   */
+  simplifyTolerance?: number;
+
+  // Viewport (overrides anything derived from extracted geometry)
+  center?: AudiomCenter;
+  zoom?: number;
+
   // Display
   displayMode?: AudiomDisplayMode;
   audiomTabLabel?: string;
@@ -46,12 +107,9 @@ export interface AudiomPluginOptions {
 
   // Advanced
   baseUrl?: string;
-  allowedOrigins?: string[];
+  allowedOrigins?: string[] | string;
   demo?: boolean;
   additionalParams?: Record<string, string | number | boolean>;
-
-  // Data source strategy
-  sourceStrategy?: AudiomSourceStrategy;
 
   // Callbacks
   onReady?: (handler: AudiomMessageHandler) => void;

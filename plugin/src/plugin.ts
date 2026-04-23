@@ -3,8 +3,7 @@ import type {
   AudiomGlobalOptions,
   AudiomPluginOptions
 } from './types';
-import { extractGeoJSON } from './extractors';
-import { viewportFor } from './geo/viewport';
+import { buildEmbedUrl } from './embed/build-url';
 
 /**
  * Internal: holds global defaults supplied via `init()`. A weak default so
@@ -85,10 +84,11 @@ export function init(
   flagged[REGISTERED_FLAG] = true;
 
   H.addEvent(H.Chart, 'load', function (this: Highcharts.Chart) {
-    if (!isAudiomEnabled(this)) {
+    const opts = resolveOptions(this);
+    if (!opts || !isMapChart(this)) {
       return;
     }
-    onChartLoad(this);
+    onChartLoad(this, opts);
   });
 
   H.addEvent(H.Chart, 'destroy', function (this: Highcharts.Chart) {
@@ -96,21 +96,33 @@ export function init(
   });
 }
 
-/** Phase-3 wiring: extract GeoJSON + viewport. UI lands in Phase 5. */
-function onChartLoad(chart: Highcharts.Chart): void {
+/** Phase-4 wiring: build the Audiom embed URL. UI lands in Phase 5. */
+function onChartLoad(
+  chart: Highcharts.Chart,
+  options: AudiomPluginOptions
+): void {
   const titleText =
     (chart.title as unknown as { textStr?: string } | undefined)?.textStr ??
     (chart.options.title as { text?: string } | undefined)?.text ??
     '';
 
-  const collection = extractGeoJSON(chart);
-  const viewport = viewportFor(collection);
-
-  // eslint-disable-next-line no-console
-  console.info('[audiom-highcharts] chart', chart.index, titleText, {
-    featureCount: collection.features.length,
-    viewport
-  });
+  try {
+    const result = buildEmbedUrl(chart, options);
+    if (!result) {
+      // eslint-disable-next-line no-console
+      console.info('[audiom-highcharts] chart', chart.index, titleText, '— no extractable geometry and no sources supplied; skipping.');
+      return;
+    }
+    // eslint-disable-next-line no-console
+    console.info('[audiom-highcharts] chart', chart.index, titleText, {
+      url: result.url
+    });
+  } catch (err) {
+    const error = err instanceof Error ? err : new Error(String(err));
+    options.onError?.(error);
+    // eslint-disable-next-line no-console
+    console.error('[audiom-highcharts] failed to build embed URL', error);
+  }
 }
 
 function onChartDestroy(_chart: Highcharts.Chart): void {

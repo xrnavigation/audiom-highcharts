@@ -4,7 +4,7 @@ import AudiomPlugin from 'audiom-highcharts';
 // Register the plugin globally. Any map chart with an apiKey (here we use
 // the global default) will trigger the plugin's hooks.
 AudiomPlugin.init(Highcharts, {
-  apiKey: 'demo-key',
+  apiKey: 'wO35blaGsjJREGuXehqWU',
   stepSize: '100km'
 });
 

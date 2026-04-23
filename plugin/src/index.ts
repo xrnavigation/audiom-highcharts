@@ -5,6 +5,9 @@ import { init, isMapChart, isAudiomEnabled, resolveOptions } from './plugin';
 import { AudiomComponent } from './audiom-component';
 import { extractGeoJSON, getExtractor } from './extractors';
 import { viewportFor, computeBBox } from './geo/viewport';
+import { buildEmbedUrl } from './embed/build-url';
+import { resolveSources } from './embed/source-strategy';
+import { geojsonToDataUri } from './embed/data-uri';
 
 export {
   init,
@@ -15,7 +18,10 @@ export {
   extractGeoJSON,
   getExtractor,
   viewportFor,
-  computeBBox
+  computeBBox,
+  buildEmbedUrl,
+  resolveSources,
+  geojsonToDataUri
 };
 
 export type {
