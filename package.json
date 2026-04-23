@@ -1,0 +1,18 @@
+{
+  "name": "audiom-highcharts-monorepo",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Monorepo for the audiom-highcharts plugin and its sample harness.",
+  "workspaces": [
+    "sample",
+    "plugin"
+  ],
+  "scripts": {
+    "dev:sample": "npm run dev --workspace sample",
+    "build:plugin": "npm run build --workspace audiom-highcharts",
+    "test:plugin": "npm run test --workspace audiom-highcharts"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0"
+  }
+}

@@ -1,0 +1,12 @@
+node_modules/
+dist/
+vendor/
+.cache/
+.parcel-cache/
+.vite/
+*.log
+.DS_Store
+.env
+.env.local
+coverage/
+.turbo/

@@ -1,0 +1,27 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "sample: dev",
+      "type": "npm",
+      "script": "dev:sample",
+      "isBackground": true,
+      "problemMatcher": [],
+      "presentation": { "reveal": "always", "panel": "dedicated" },
+      "group": { "kind": "build", "isDefault": true }
+    },
+    {
+      "label": "plugin: build",
+      "type": "npm",
+      "script": "build:plugin",
+      "problemMatcher": ["$tsc"]
+    },
+    {
+      "label": "plugin: test",
+      "type": "npm",
+      "script": "test:plugin",
+      "problemMatcher": [],
+      "group": { "kind": "test", "isDefault": true }
+    }
+  ]
+}
