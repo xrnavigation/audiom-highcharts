@@ -3,11 +3,12 @@
  * from day one and types resolve cleanly.
  */
 import type Highcharts from 'highcharts';
+import type { AudiomMessageHandler } from '@xrnavigation/audiom-embedder';
 import type { AudiomPluginOptions } from './types';
 
 export interface AudiomComponentInstance {
   readonly element: HTMLElement;
-  readonly handler: unknown;
+  readonly handler: AudiomMessageHandler;
   refresh(): void;
   destroy(): void;
 }

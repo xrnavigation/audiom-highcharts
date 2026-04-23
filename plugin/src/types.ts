@@ -2,12 +2,18 @@
  * Public types for the audiom-highcharts plugin.
  *
  * Mirrors the configuration described in the design issue
- * (Coughlan-Lab/Audiom-Front-End#1352).
+ * (Coughlan-Lab/Audiom-Front-End#1352). Where possible we re-use the types
+ * from `@xrnavigation/audiom-embedder` rather than redeclaring them.
  */
+import type { AudiomMessageHandler } from '@xrnavigation/audiom-embedder';
+import {
+  FilterMode,
+  VisualStyle
+} from '@xrnavigation/audiom-embedder/dist/AudiomEmbedConfig';
+
+export { FilterMode, VisualStyle };
 
 export type AudiomDisplayMode = 'tabbed' | 'component';
-export type AudiomFilterMode = 'global' | 'scan';
-export type AudiomVisualStyle = 'geology' | 'indoor' | 'outdoor' | 'travel';
 export type AudiomSourceStrategy = 'auto' | 'passthrough' | 'extract';
 
 /**
@@ -26,7 +32,7 @@ export interface AudiomPluginOptions {
   rules?: string;
   title?: string;
   filters?: string[];
-  filterMode?: AudiomFilterMode;
+  filterMode?: FilterMode;
 
   // Display
   displayMode?: AudiomDisplayMode;
@@ -35,20 +41,20 @@ export interface AudiomPluginOptions {
 
   // Visual
   showVisualMap?: boolean;
-  visualStyle?: AudiomVisualStyle;
+  visualStyle?: VisualStyle;
   heading?: 1 | 2 | 3 | 4 | 5 | 6;
 
   // Advanced
   baseUrl?: string;
   allowedOrigins?: string[];
   demo?: boolean;
-  additionalParams?: Record<string, unknown>;
+  additionalParams?: Record<string, string | number | boolean>;
 
   // Data source strategy
   sourceStrategy?: AudiomSourceStrategy;
 
   // Callbacks
-  onReady?: (handler: unknown) => void;
+  onReady?: (handler: AudiomMessageHandler) => void;
   onError?: (error: Error) => void;
 }
 

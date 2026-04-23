@@ -5,7 +5,6 @@ import AudiomPlugin from 'audiom-highcharts';
 // the global default) will trigger the plugin's hooks.
 AudiomPlugin.init(Highcharts, {
   apiKey: 'demo-key',
-  soundpack: '/audio',
   stepSize: '100km'
 });
 

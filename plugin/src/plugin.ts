@@ -3,6 +3,8 @@ import type {
   AudiomGlobalOptions,
   AudiomPluginOptions
 } from './types';
+import { extractGeoJSON } from './extractors';
+import { viewportFor } from './geo/viewport';
 
 /**
  * Internal: holds global defaults supplied via `init()`. A weak default so
@@ -94,14 +96,21 @@ export function init(
   });
 }
 
-/** Phase-2 stub: announce that we saw the chart. Real wiring lands in later phases. */
+/** Phase-3 wiring: extract GeoJSON + viewport. UI lands in Phase 5. */
 function onChartLoad(chart: Highcharts.Chart): void {
   const titleText =
     (chart.title as unknown as { textStr?: string } | undefined)?.textStr ??
     (chart.options.title as { text?: string } | undefined)?.text ??
     '';
+
+  const collection = extractGeoJSON(chart);
+  const viewport = viewportFor(collection);
+
   // eslint-disable-next-line no-console
-  console.info('[audiom-highcharts] hook fired for chart', chart.index, titleText);
+  console.info('[audiom-highcharts] chart', chart.index, titleText, {
+    featureCount: collection.features.length,
+    viewport
+  });
 }
 
 function onChartDestroy(_chart: Highcharts.Chart): void {
