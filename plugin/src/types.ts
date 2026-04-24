@@ -31,17 +31,21 @@ export enum AudiomDisplayMode {
  *
  * Resolution order under {@link AudiomSourceStrategy.Auto}:
  *   1. Honour user-supplied `sources`.
- *   2. Honour `geometryUrl` if set, or detect a Highcharts CDN map name.
+ *   2. POST to a registered dev uploader (see `registerDevSourceUploader`).
  *   3. Call `uploadGeoJSON(collection)` if provided, use returned URL.
  *   4. Extract → simplify → inline as a `data:` URI.
+ *
+ * A boundaries-only URL strategy was intentionally dropped — without the
+ * merged Highcharts data values stamped into each Feature's properties,
+ * Audiom would render an outline with no choropleth/heatmap content.
  */
 export enum AudiomSourceStrategy {
-  /** Try in priority order: passthrough → URL → upload → inline. */
+  /** Try in priority order: passthrough → dev-uploader → upload → inline. */
   Auto = 'auto',
   /** Forward `options.sources` verbatim; never extract. */
   Passthrough = 'passthrough',
-  /** Use `options.geometryUrl` (or a detected Highcharts CDN URL). */
-  Url = 'url',
+  /** POST the FeatureCollection to the registered dev uploader. */
+  DevUploader = 'dev-uploader',
   /** Hand the extracted FeatureCollection to `options.uploadGeoJSON`. */
   Upload = 'upload',
   /** Extract → simplify → inline as `data:application/geo+json;base64,…`. */
@@ -73,11 +77,6 @@ export interface AudiomPluginOptions {
   /** When `passthrough` or `auto` (with sources supplied), forwarded directly to Audiom. */
   sources?: IAudiomSource[] | string[];
   sourceStrategy?: AudiomSourceStrategy;
-  /**
-   * Explicit URL to a TopoJSON / GeoJSON the Audiom iframe can fetch
-   * (CORS-reachable from the Audiom origin). Skips inlining entirely.
-   */
-  geometryUrl?: string;
   /**
    * Hook invoked when {@link AudiomSourceStrategy.Upload} (or auto) decides to
    * hand the extracted FeatureCollection to a host-provided endpoint.

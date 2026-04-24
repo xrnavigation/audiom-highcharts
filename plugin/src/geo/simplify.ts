@@ -1,6 +1,6 @@
 import { topology } from 'topojson-server';
-import { presimplify, simplify, quantize } from 'topojson-simplify';
-import { feature } from 'topojson-client';
+import { presimplify, simplify } from 'topojson-simplify';
+import { feature, quantize } from 'topojson-client';
 import type { GeometryObject, Topology } from 'topojson-specification';
 import type { Feature, FeatureCollection } from '../geo/types';
 
@@ -18,11 +18,13 @@ export function simplifyFeatureCollection(
   if (!Number.isFinite(tolerance) || tolerance <= 0) return collection;
   if (collection.features.length === 0) return collection;
 
-  // topojson-server expects a record of GeoJSON objects.
-  const topo = topology({ collection: collection as never }) as Topology;
-  const quantized = quantize(topo, 1e4);
-  const presimplified = presimplify(quantized);
-  const simplified = simplify(presimplified, tolerance);
+  // topojson-server typings use `GeoJsonProperties` (which includes null);
+  // topojson-simplify typings use `{}`. Cast through `never` once at the
+  // boundary rather than redeclaring shapes.
+  const topo = topology({ collection: collection as never }) as never;
+  const quantized = quantize(topo, 1e4) as never;
+  const presimplified = presimplify(quantized) as never;
+  const simplified = simplify(presimplified, tolerance) as Topology;
 
   const result = feature(
     simplified,

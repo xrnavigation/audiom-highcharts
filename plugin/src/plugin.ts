@@ -88,7 +88,7 @@ export function init(
     if (!opts || !isMapChart(this)) {
       return;
     }
-    onChartLoad(this, opts);
+    void onChartLoad(this, opts);
   });
 
   H.addEvent(H.Chart, 'destroy', function (this: Highcharts.Chart) {
@@ -97,17 +97,17 @@ export function init(
 }
 
 /** Phase-4 wiring: build the Audiom embed URL. UI lands in Phase 5. */
-function onChartLoad(
+async function onChartLoad(
   chart: Highcharts.Chart,
   options: AudiomPluginOptions
-): void {
+): Promise<void> {
   const titleText =
     (chart.title as unknown as { textStr?: string } | undefined)?.textStr ??
     (chart.options.title as { text?: string } | undefined)?.text ??
     '';
 
   try {
-    const result = buildEmbedUrl(chart, options);
+    const result = await buildEmbedUrl(chart, options);
     if (!result) {
       // eslint-disable-next-line no-console
       console.info('[audiom-highcharts] chart', chart.index, titleText, '— no extractable geometry and no sources supplied; skipping.');
@@ -115,6 +115,8 @@ function onChartLoad(
     }
     // eslint-disable-next-line no-console
     console.info('[audiom-highcharts] chart', chart.index, titleText, {
+      strategy: result.strategy,
+      urlLength: result.url.length,
       url: result.url
     });
   } catch (err) {

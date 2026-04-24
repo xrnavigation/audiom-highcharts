@@ -8,6 +8,10 @@ import { viewportFor, computeBBox } from './geo/viewport';
 import { buildEmbedUrl } from './embed/build-url';
 import { resolveSources } from './embed/source-strategy';
 import { geojsonToDataUri } from './embed/data-uri';
+import {
+  registerDevSourceUploader,
+  getRegisteredDevSourceUploader
+} from './dev/uploader';
 
 export {
   init,
@@ -21,8 +25,15 @@ export {
   computeBBox,
   buildEmbedUrl,
   resolveSources,
-  geojsonToDataUri
+  geojsonToDataUri,
+  registerDevSourceUploader,
+  getRegisteredDevSourceUploader
 };
+
+export type {
+  RegisterDevSourceUploaderOptions,
+  DevSourceUploaderHandle
+} from './dev/uploader';
 
 export type {
   AudiomPluginOptions,

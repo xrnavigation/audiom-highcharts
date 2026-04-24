@@ -1,5 +1,5 @@
 import Highcharts from 'highcharts/highmaps';
-import AudiomPlugin from 'audiom-highcharts';
+import AudiomPlugin, { registerDevSourceUploader } from 'audiom-highcharts';
 
 // Register the plugin globally. Any map chart with an apiKey (here we use
 // the global default) will trigger the plugin's hooks.
@@ -42,6 +42,14 @@ const data: Array<[string, number]> = [
 ];
 
 async function bootstrap(): Promise<void> {
+  // Register the dev source uploader. The matching Vite plugin
+  // (`audiomHighchartsDev()` in vite.config.ts) hosts a small middleware
+  // that POSTs/serves GeoJSON with proper CORS headers, so a locally-running
+  // Audiom iframe (e.g. http://localhost:3000) can fetch it. In production
+  // builds, drop this call and supply `audiom.uploadGeoJSON` (or pre-baked
+  // `sources`) instead.
+  registerDevSourceUploader();
+
   const topology = await fetch(WORLD_TOPO_URL).then((r) => r.json());
 
   Highcharts.mapChart('container', {

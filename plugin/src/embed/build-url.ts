@@ -5,13 +5,14 @@ import {
   type IAudiomEmbedConfig,
   type IAudiomSource
 } from '@xrnavigation/audiom-embedder';
-import type { AudiomPluginOptions } from '../types';
+import type { AudiomPluginOptions, AudiomSourceStrategy } from '../types';
 import { resolveSources } from './source-strategy';
 import { viewportFor } from '../geo/viewport';
 
 export interface BuildEmbedResult {
   url: string;
   config: AudiomEmbedConfig;
+  strategy: AudiomSourceStrategy;
 }
 
 /**
@@ -23,11 +24,11 @@ export interface BuildEmbedResult {
  * Returns `null` when nothing extractable was found and the user did not
  * supply sources — there's no point producing a useless URL.
  */
-export function buildEmbedUrl(
+export async function buildEmbedUrl(
   chart: Highcharts.Chart,
   options: AudiomPluginOptions
-): BuildEmbedResult | null {
-  const { sources, geojson } = resolveSources(chart, options);
+): Promise<BuildEmbedResult | null> {
+  const { sources, geojson, strategy } = await resolveSources(chart, options);
   if (sources.length === 0) return null;
 
   // Derive viewport from extracted GeoJSON unless the caller pinned one.
@@ -65,5 +66,5 @@ export function buildEmbedUrl(
 
   const config = AudiomEmbedConfig.dynamic(configInput);
   const url = options.baseUrl ? config.toUrl(options.baseUrl) : config.toUrl();
-  return { url, config };
+  return { url, config, strategy };
 }
