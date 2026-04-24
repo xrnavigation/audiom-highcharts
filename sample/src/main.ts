@@ -8,37 +8,41 @@ AudiomPlugin.init(Highcharts, {
   stepSize: '100km'
 });
 
-const WORLD_TOPO_URL =
-  'https://code.highcharts.com/mapdata/custom/world.topo.json';
+const EUROPE_TOPO_URL =
+  'https://code.highcharts.com/mapdata/custom/europe.topo.json';
 
-// Tiny demo dataset: population (millions, approx). hc-key matches Highcharts
-// world map ISO-2 codes.
+// GDP per capita (USD, approx 2023). hc-key matches Highcharts Europe map.
 const data: Array<[string, number]> = [
-  ['cn', 1412],
-  ['in', 1408],
-  ['us', 333],
-  ['id', 273],
-  ['pk', 231],
-  ['br', 215],
-  ['ng', 218],
-  ['bd', 169],
-  ['ru', 144],
-  ['mx', 128],
-  ['jp', 125],
-  ['et', 123],
-  ['ph', 115],
-  ['eg', 110],
-  ['vn', 98],
-  ['cd', 99],
-  ['de', 84],
-  ['tr', 85],
-  ['ir', 88],
-  ['fr', 68],
-  ['gb', 67],
-  ['it', 59],
-  ['za', 60],
-  ['ca', 39],
-  ['au', 26]
+  ['no', 82655],
+  ['ch', 93259],
+  ['ie', 103274],
+  ['lu', 125006],
+  ['dk', 67803],
+  ['se', 55884],
+  ['nl', 57768],
+  ['at', 51462],
+  ['fi', 49853],
+  ['de', 48432],
+  ['be', 47068],
+  ['fr', 42330],
+  ['gb', 45295],
+  ['it', 35472],
+  ['es', 30103],
+  ['pt', 24560],
+  ['gr', 20193],
+  ['pl', 18002],
+  ['cz', 27700],
+  ['hu', 18257],
+  ['ro', 14858],
+  ['bg', 13577],
+  ['hr', 18384],
+  ['sk', 21197],
+  ['si', 28929],
+  ['lt', 24318],
+  ['lv', 21157],
+  ['ee', 27282],
+  ['rs', 9538],
+  ['ua', 4533]
 ];
 
 async function bootstrap(): Promise<void> {
@@ -50,19 +54,19 @@ async function bootstrap(): Promise<void> {
   // `sources`) instead.
   registerDevSourceUploader();
 
-  const topology = await fetch(WORLD_TOPO_URL).then((r) => r.json());
+  const topology = await fetch(EUROPE_TOPO_URL).then((r) => r.json());
 
   Highcharts.mapChart('container', {
     chart: { map: topology },
-    title: { text: 'World population (millions)' },
+    title: { text: 'Europe — GDP per capita (USD, approx 2023)' },
     subtitle: { text: 'Source: World Bank — illustrative subset' },
     mapNavigation: {
       enabled: true,
       buttonOptions: { verticalAlign: 'bottom' }
     },
     colorAxis: {
-      min: 1,
-      max: 1500,
+      min: 4000,
+      max: 130000,
       type: 'logarithmic',
       stops: [
         [0, '#EFEFFF'],
@@ -73,13 +77,13 @@ async function bootstrap(): Promise<void> {
     series: [
       {
         type: 'map',
-        name: 'Population',
+        name: 'GDP per capita',
         data,
         joinBy: 'hc-key',
         states: { hover: { color: '#a4edba' } },
         dataLabels: { enabled: false },
         tooltip: {
-          pointFormat: '{point.name}: <b>{point.value}</b>M'
+          pointFormat: '{point.name}: <b>${point.value:,.0f}</b>'
         }
       }
     ]
