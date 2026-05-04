@@ -1,9 +1,5 @@
 /**
  * Public types for the audiom-highcharts plugin.
- *
- * Mirrors the configuration described in the design issue
- * (Coughlan-Lab/Audiom-Front-End#1352). Where possible we re-use the types
- * from `@xrnavigation/audiom-embedder` rather than redeclaring them.
  */
 import type {
   AudiomMessageHandler,
@@ -13,6 +9,7 @@ import {
   FilterMode,
   VisualStyle
 } from '@xrnavigation/audiom-embedder/dist/AudiomEmbedConfig';
+import type { SourceBackend } from './sources/types';
 
 export { FilterMode, VisualStyle };
 
@@ -29,35 +26,7 @@ export enum AudiomDisplayMode {
    * that opens the embed URL in a new tab. Useful when iframe embedding is
    * blocked (e.g. Chrome/Edge Private Network Access during local dev).
    */
-  Button = 'button',
-  /** Caller embeds the AudiomComponent themselves; plugin renders nothing. */
-  Component = 'component'
-}
-
-/**
- * How the plugin should produce the `sources` value handed to Audiom.
- *
- * Resolution order under {@link AudiomSourceStrategy.Auto}:
- *   1. Honour user-supplied `sources`.
- *   2. POST to a registered dev uploader (see `registerDevSourceUploader`).
- *   3. Call `uploadGeoJSON(collection)` if provided, use returned URL.
- *   4. Extract → simplify → inline as a `data:` URI.
- *
- * A boundaries-only URL strategy was intentionally dropped — without the
- * merged Highcharts data values stamped into each Feature's properties,
- * Audiom would render an outline with no choropleth/heatmap content.
- */
-export enum AudiomSourceStrategy {
-  /** Try in priority order: passthrough → dev-uploader → upload → inline. */
-  Auto = 'auto',
-  /** Forward `options.sources` verbatim; never extract. */
-  Passthrough = 'passthrough',
-  /** POST the FeatureCollection to the registered dev uploader. */
-  DevUploader = 'dev-uploader',
-  /** Hand the extracted FeatureCollection to `options.uploadGeoJSON`. */
-  Upload = 'upload',
-  /** Extract → simplify → inline as `data:application/geo+json;base64,…`. */
-  Inline = 'inline'
+  Button = 'button'
 }
 
 /** `[longitude, latitude]` tuple matching the embedder's `Coordinates`. */
@@ -81,35 +50,20 @@ export interface AudiomPluginOptions {
   filters?: string[];
   filterMode?: FilterMode;
 
-  // Data source strategy
-  /** When `passthrough` or `auto` (with sources supplied), forwarded directly to Audiom. */
+  // Data source
+  /**
+   * Pre-baked Audiom sources. When supplied, no GeoJSON is extracted from
+   * the chart and `backend` is ignored.
+   */
   sources?: IAudiomSource[] | string[];
-  sourceStrategy?: AudiomSourceStrategy;
   /**
-   * Pluggable storage backend for the extracted GeoJSON. When provided,
-   * supersedes `uploadGeoJSON` and the legacy `registerDevSourceUploader`
-   * registration. See `audiom-highcharts/sources` for built-in factories
-   * (`inlineBackend`, `staticBackend`, `restBackend`, `s3PresignedBackend`,
-   * `devServerBackend`, `memoryBackend`) or implement your own
-   * `SourceBackend`.
+   * Storage + serving backend for the GeoJSON the plugin extracts from
+   * the chart. Required unless `sources` is supplied. See
+   * `audiom-highcharts` for built-in factories: `inlineBackend`,
+   * `restBackend`, `s3PresignedBackend`, `devServerBackend`,
+   * `memoryBackend`, or `staticBackend`.
    */
-  backend?: import('./sources/types').SourceBackend;
-  /**
-   * @deprecated Pass `backend: restBackend({ endpoint })` (or your own
-   * SourceBackend) instead. Still honoured for back-compat: the plugin
-   * wraps it as a one-shot REST-style backend.
-   *
-   * Hook invoked when {@link AudiomSourceStrategy.Upload} (or auto) decides to
-   * hand the extracted FeatureCollection to a host-provided endpoint.
-   * Must return a URL the Audiom iframe can fetch.
-   */
-  uploadGeoJSON?: (collection: import('./geo/types').FeatureCollection) => Promise<string>;
-  /**
-   * Maximum simplification weight (in degrees²) applied to inline geometry.
-   * Higher = more aggressive smoothing. `0` disables simplification.
-   * @default 0.01
-   */
-  simplifyTolerance?: number;
+  backend?: SourceBackend;
 
   // Viewport (overrides anything derived from extracted geometry)
   center?: AudiomCenter;
@@ -121,8 +75,8 @@ export interface AudiomPluginOptions {
   highchartsTabLabel?: string;
   /**
    * In Tabbed/SideBySide modes, also render an "Open in Audiom" anchor
-   * that opens the embed URL in a new tab. Defaults to `false`. In
-   * `displayMode: Button`, the button is always rendered regardless.
+   * that opens the embed URL in a new tab. In `displayMode: Button`,
+   * the button is always rendered regardless.
    */
   showOpenInTabButton?: boolean;
   /** Override the preview button label. Default: "Open in Audiom". */

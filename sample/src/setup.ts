@@ -5,16 +5,15 @@
  * common styling used across the samples.
  */
 import Highcharts from 'highcharts/highmaps';
-import AudiomPlugin, { registerDevSourceUploader } from 'audiom-highcharts';
+import AudiomPlugin, { SourceBackend } from 'audiom-highcharts';
 import { setupDisplayModeToggle } from './mode-toggle';
 
 const SHARED_API_KEY = 'wO35blaGsjJREGuXehqWU';
 
-// A locally running Audiom dev server. Loopback ↔ loopback fetches are
-// exempt from Chrome/Edge Private Network Access, so the iframe can fetch
-// GeoJSON from this same origin without the policy kicking in.
-//const LOCAL_AUDIOM_BASE_URL = 'http://localhost:3000';
-const LOCAL_AUDIOM_BASE_URL = 'https://audiom-staging.herokuapp.com';
+// Where the Audiom embed is hosted. Switch to 'http://localhost:3000' when
+// running Audiom locally — loopback ↔ loopback fetches are exempt from
+// Chrome/Edge Private Network Access, so no tunnel is needed.
+const AUDIOM_BASE_URL = 'https://audiom-staging.herokuapp.com';
 
 let initialized = false;
 let cachedDisplayMode: ReturnType<typeof setupDisplayModeToggle> | null = null;
@@ -29,10 +28,20 @@ export function setupSample(): { displayMode: ReturnType<typeof setupDisplayMode
     AudiomPlugin.init(Highcharts, {
       apiKey: SHARED_API_KEY,
       stepSize: '100km',
-      baseUrl: LOCAL_AUDIOM_BASE_URL,
+      baseUrl: AUDIOM_BASE_URL,
       displayMode: cachedDisplayMode,
+      // The Vite dev plugin (audiomHighchartsDev() in vite.config.ts) hosts
+      // an upload endpoint at /__audiom__/upload. SourceBackend.devServer()
+      // POSTs extracted GeoJSON there and hands the returned URL to Audiom.
+      // For production, swap for SourceBackend.rest({ endpoint: '/api/...' })
+      // or SourceBackend.s3Presigned({ getPresignedPut: ... }).
+      backend: SourceBackend.devServer()
+      // SourceBackend.inline()
+      // SourceBackend.memory()
+      // SourceBackend.static([...])
+      // SourceBackend.rest({ endpoint: '/api/upload' })
+      // SourceBackend.s3Presigned({ getPresignedPut: … })
     });
-    registerDevSourceUploader();
     initialized = true;
   }
   return { displayMode: cachedDisplayMode! };

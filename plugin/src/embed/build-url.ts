@@ -5,14 +5,16 @@ import {
   type IAudiomEmbedConfig,
   type IAudiomSource
 } from '@xrnavigation/audiom-embedder';
-import type { AudiomPluginOptions, AudiomSourceStrategy } from '../types';
+import type { AudiomPluginOptions } from '../types';
 import { resolveSources } from './source-strategy';
 import { viewportFor } from '../geo/viewport';
+import type { SourceBackend } from '../sources/types';
 
 export interface BuildEmbedResult {
   url: string;
   config: AudiomEmbedConfig;
-  strategy: AudiomSourceStrategy;
+  /** Backend that produced the sources, when one was used. */
+  backend?: SourceBackend;
 }
 
 /**
@@ -28,7 +30,7 @@ export async function buildEmbedUrl(
   chart: Highcharts.Chart,
   options: AudiomPluginOptions
 ): Promise<BuildEmbedResult | null> {
-  const { sources, geojson, strategy } = await resolveSources(chart, options);
+  const { sources, geojson, backend } = await resolveSources(chart, options);
   if (sources.length === 0) return null;
 
   // Derive viewport from extracted GeoJSON unless the caller pinned one.
@@ -66,5 +68,5 @@ export async function buildEmbedUrl(
 
   const config = AudiomEmbedConfig.dynamic(configInput);
   const url = options.baseUrl ? config.toUrl(options.baseUrl) : config.toUrl();
-  return { url, config, strategy };
+  return { url, config, backend };
 }

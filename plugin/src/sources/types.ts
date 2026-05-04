@@ -42,6 +42,17 @@ export interface SourcePutContext {
 export type AudiomSourceValue = IAudiomSource | string;
 
 /**
+ * Names of the built-in backends. Custom user backends may use any string.
+ */
+export type BuiltinBackendName =
+  | 'inline'
+  | 'static'
+  | 'rest'
+  | 's3-presigned'
+  | 'dev-server'
+  | 'memory';
+
+/**
  * Pluggable storage + serving for a chart's extracted GeoJSON.
  *
  * Implementations are responsible for: persisting the bytes (if needed),
@@ -50,8 +61,11 @@ export type AudiomSourceValue = IAudiomSource | string;
  * client-side, returning the inline payload directly.
  */
 export interface SourceBackend {
-  /** Human-readable name for logs / errors. */
-  readonly name: string;
+  /**
+   * Discriminator for logs / errors. Built-in backends use one of
+   * {@link BuiltinBackendName}; custom backends may use any string.
+   */
+  readonly name: BuiltinBackendName | (string & {});
   /**
    * Persist the FeatureCollection and return values suitable for
    * `AudiomEmbedConfig.dynamic({ sources })`.
@@ -60,14 +74,4 @@ export interface SourceBackend {
     collection: FeatureCollection,
     ctx: SourcePutContext
   ): Promise<AudiomSourceValue[]>;
-}
-
-/**
- * Resolution helper used when the host supplies multiple ways of producing
- * sources at once (e.g. `sources: [...]` AND `backend: ...`). Lets the
- * source-strategy resolver explain what it picked in logs/errors.
- */
-export interface ResolvedBackend {
-  readonly backend: SourceBackend;
-  readonly origin: 'option' | 'global' | 'legacy-callback' | 'legacy-dev' | 'default';
 }

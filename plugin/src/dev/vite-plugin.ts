@@ -13,11 +13,10 @@
  * `Access-Control-Allow-Origin` header — something a service worker on
  * the host origin cannot do for a request initiated by a foreign window.
  *
- * Pair with `registerDevSourceUploader({ endpoint })` on the page side.
+ * Pair with `backend: devServerBackend()` on the page side.
  *
- * Production: do not ship this. The matching browser helper is a no-op
- * outside dev; if it's never registered the plugin's source-resolution
- * logic falls through to upload/inline as configured.
+ * Production: do not ship this. Use `restBackend({ endpoint })` or
+ * `s3PresignedBackend({ getPresignedPut })` against your own infrastructure.
  */
 import type { Plugin, ViteDevServer, Connect } from 'vite';
 import { randomUUID } from 'node:crypto';

@@ -1,71 +1,30 @@
 /**
  * audiom-highcharts public entry point.
  */
-import { init, isMapChart, isAudiomEnabled, resolveOptions } from './plugin';
-import { AudiomComponent } from './audiom-component';
-import { extractGeoJSON, getExtractor } from './extractors';
-import { viewportFor, computeBBox } from './geo/viewport';
-import { buildEmbedUrl } from './embed/build-url';
-import { resolveSources } from './embed/source-strategy';
-import { geojsonToDataUri } from './embed/data-uri';
-import { createAudiomIframe, updateIframeUrl } from './embed/iframe-manager';
-import { mountLayout } from './ui/layout';
-import { ensureStylesInjected } from './ui/styles';
-import { createPreviewButton, mountPreviewButtonAfter } from './ui/preview-button';
+import { init } from './plugin';
+import { SourceBackend } from './sources';
 import {
-  inlineBackend,
-  staticBackend,
-  restBackend,
-  s3PresignedBackend,
-  devServerBackend,
-  memoryBackend
-} from './sources';
-import {
-  registerDevSourceUploader,
-  getRegisteredDevSourceUploader
-} from './dev/uploader';
+  createPreviewButton,
+  mountPreviewButtonAfter
+} from './ui/preview-button';
 
 export {
   init,
-  isMapChart,
-  isAudiomEnabled,
-  resolveOptions,
-  AudiomComponent,
-  extractGeoJSON,
-  getExtractor,
-  viewportFor,
-  computeBBox,
-  buildEmbedUrl,
-  resolveSources,
-  geojsonToDataUri,
-  createAudiomIframe,
-  updateIframeUrl,
-  mountLayout,
-  ensureStylesInjected,
+  /**
+   * Both the **interface** (for typing custom backends) and the **static
+   * factory namespace** for built-ins (`SourceBackend.memory()`,
+   * `.rest({...})`, `.s3Presigned({...})`, etc.).
+   */
+  SourceBackend,
+  // Preview button (for hosts that build their own layout)
   createPreviewButton,
-  mountPreviewButtonAfter,
-  inlineBackend,
-  staticBackend,
-  restBackend,
-  s3PresignedBackend,
-  devServerBackend,
-  memoryBackend,
-  registerDevSourceUploader,
-  getRegisteredDevSourceUploader
+  mountPreviewButtonAfter
 };
 
 export type {
-  RegisterDevSourceUploaderOptions,
-  DevSourceUploaderHandle
-} from './dev/uploader';
-export type { LayoutHandle, MountLayoutOptions } from './ui/layout';
-export type { CreateIframeOptions } from './embed/iframe-manager';
-export type { PreviewButtonOptions, PreviewButtonHandle } from './ui/preview-button';
-export type {
-  SourceBackend,
   SourcePutContext,
   AudiomSourceValue,
-  ResolvedBackend,
+  BuiltinBackendName,
   InlineBackendOptions,
   RestBackendOptions,
   S3PresignedBackendOptions,
@@ -74,13 +33,15 @@ export type {
   MemoryBackendHandle
 } from './sources';
 
+export type { PreviewButtonOptions, PreviewButtonHandle } from './ui/preview-button';
+
 export type {
   AudiomPluginOptions,
-  AudiomGlobalOptions
+  AudiomGlobalOptions,
+  AudiomCenter
 } from './types';
 export {
   AudiomDisplayMode,
-  AudiomSourceStrategy,
   FilterMode,
   VisualStyle
 } from './types';
@@ -91,5 +52,5 @@ export type {
   Position
 } from './geo/types';
 
-const AudiomPlugin = { init, AudiomComponent };
+const AudiomPlugin = { init };
 export default AudiomPlugin;

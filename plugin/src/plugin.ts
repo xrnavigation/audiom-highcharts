@@ -128,16 +128,12 @@ async function onChartLoad(
     }
     // eslint-disable-next-line no-console
     console.info('[audiom-highcharts] chart', chart.index, titleText, {
-      strategy: result.strategy,
+      backend: result.backend?.name,
       urlLength: result.url.length,
       url: result.url
     });
 
     const mode = options.displayMode ?? AudiomDisplayMode.Tabbed;
-    if (mode === AudiomDisplayMode.Component) {
-      // Caller is responsible for mounting AudiomComponent themselves.
-      return;
-    }
 
     if (mode === AudiomDisplayMode.Button) {
       const renderTo = (chart as unknown as { renderTo: HTMLElement }).renderTo;
