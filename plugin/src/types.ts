@@ -7,7 +7,8 @@ import type {
 } from '@xrnavigation/audiom-embedder';
 import {
   FilterMode,
-  VisualStyle
+  VisualStyle,
+  type IAudiomEmbedConfig
 } from '@xrnavigation/audiom-embedder/dist/AudiomEmbedConfig';
 import type { SourceBackend } from './sources/types';
 
@@ -33,41 +34,22 @@ export enum AudiomDisplayMode {
 export type AudiomCenter = [number, number];
 
 /**
- * Per-chart Audiom plugin configuration. Attached as
- * `chartOptions.audiom` or merged from the global defaults passed to `init()`.
+ * Fields the plugin owns and that have no equivalent in `IAudiomEmbedConfig`.
+ * Kept separate so `AudiomPluginOptions` can extend the embedder config and
+ * not redeclare anything that already lives there.
  */
-export interface AudiomPluginOptions {
+interface AudiomPluginOnlyOptions {
   /** When false, the plugin will not augment the chart even if loaded. */
   enabled?: boolean;
-  /** Audiom API key. Required when the plugin is active for a chart. */
-  apiKey: string;
-
-  // Audiom map settings
-  soundpack?: string;
-  stepSize?: string;
-  rules?: string;
-  title?: string;
-  filters?: string[];
-  filterMode?: FilterMode;
-
-  // Data source
-  /**
-   * Pre-baked Audiom sources. When supplied, no GeoJSON is extracted from
-   * the chart and `backend` is ignored.
-   */
-  sources?: IAudiomSource[] | string[];
   /**
    * Storage + serving backend for the GeoJSON the plugin extracts from
-   * the chart. Required unless `sources` is supplied. See
-   * `audiom-highcharts` for built-in factories: `inlineBackend`,
-   * `restBackend`, `s3PresignedBackend`, `devServerBackend`,
-   * `memoryBackend`, or `staticBackend`.
+   * the chart. Required unless `sources` is supplied. Use the
+   * `SourceBackend` namespace for built-ins
+   * (`SourceBackend.devServer()`, `.rest({...})`, `.s3Presigned({...})`,
+   * `.inline()`, `.memory()`, `.static([...])`) or supply your own
+   * `SourceBackend` implementation.
    */
   backend?: SourceBackend;
-
-  // Viewport (overrides anything derived from extracted geometry)
-  center?: AudiomCenter;
-  zoom?: number;
 
   // Display
   displayMode?: AudiomDisplayMode;
@@ -82,20 +64,36 @@ export interface AudiomPluginOptions {
   /** Override the preview button label. Default: "Open in Audiom". */
   openInTabLabel?: string;
 
-  // Visual
-  showVisualMap?: boolean;
-  visualStyle?: VisualStyle;
-  heading?: 1 | 2 | 3 | 4 | 5 | 6;
-
-  // Advanced
+  /** Audiom base URL. Defaults to `AudiomEmbedConfig.defaultBaseURL`. */
   baseUrl?: string;
-  allowedOrigins?: string[] | string;
-  demo?: boolean;
-  additionalParams?: Record<string, string | number | boolean>;
 
   // Callbacks
   onReady?: (handler: AudiomMessageHandler) => void;
   onError?: (error: Error) => void;
+}
+
+/**
+ * Per-chart Audiom plugin configuration. Attached as
+ * `chartOptions.audiom` or merged from the global defaults passed to `init()`.
+ *
+ * Extends `IAudiomEmbedConfig` (minus `embedId`, which the plugin always
+ * sets to `"dynamic"`, and minus `center`/`sources`, which are re-typed
+ * for ergonomics) so every embedder config field — `apiKey`, `soundpack`,
+ * `stepSize`, `filters`, `filterMode`, `visualStyle`, `visualBaseLayers`,
+ * `showVisualMap`, `heading`, `showHeading`, `title`, `demo`, `zoom`,
+ * `latitude`, `longitude`, `allowedOrigins`, `additionalParams` — is
+ * accepted and forwarded verbatim.
+ */
+export interface AudiomPluginOptions
+  extends Omit<IAudiomEmbedConfig, 'embedId' | 'center' | 'sources'>,
+    AudiomPluginOnlyOptions {
+  /** `[longitude, latitude]` tuple. Overrides anything derived from geometry. */
+  center?: AudiomCenter;
+  /**
+   * Pre-baked Audiom sources. When supplied, no GeoJSON is extracted from
+   * the chart and `backend` is ignored.
+   */
+  sources?: IAudiomSource[] | string[];
 }
 
 /**

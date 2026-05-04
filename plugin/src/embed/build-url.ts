@@ -36,33 +36,36 @@ export async function buildEmbedUrl(
   // Derive viewport from extracted GeoJSON unless the caller pinned one.
   const derivedViewport = geojson ? viewportFor(geojson) : null;
 
+  // Strip plugin-only fields; everything else is a passthrough to the embedder.
+  const {
+    enabled: _enabled,
+    backend: _backend,
+    sources: _sourcesIn,
+    center,
+    displayMode: _displayMode,
+    audiomTabLabel: _audiomTabLabel,
+    highchartsTabLabel: _highchartsTabLabel,
+    showOpenInTabButton: _showOpenInTabButton,
+    openInTabLabel: _openInTabLabel,
+    baseUrl: _baseUrl,
+    onReady: _onReady,
+    onError: _onError,
+    ...embedderPassthrough
+  } = options;
+
   const configInput: Omit<IAudiomEmbedConfig, 'embedId'> = {
-    apiKey: options.apiKey,
+    ...embedderPassthrough,
     sources: sources as IAudiomSource[] | string[]
   };
 
-  if (options.title !== undefined) configInput.title = options.title;
-  if (options.soundpack !== undefined) configInput.soundpack = options.soundpack;
-  if (options.stepSize !== undefined) configInput.stepSize = options.stepSize;
-  if (options.filters !== undefined) configInput.filters = options.filters;
-  if (options.filterMode !== undefined) configInput.filterMode = options.filterMode;
-  if (options.visualStyle !== undefined) configInput.visualStyle = options.visualStyle;
-  if (options.showVisualMap !== undefined) configInput.showVisualMap = options.showVisualMap;
-  if (options.heading !== undefined) configInput.heading = options.heading;
-  if (options.allowedOrigins !== undefined) configInput.allowedOrigins = options.allowedOrigins;
-  if (options.demo !== undefined) configInput.demo = options.demo;
-  if (options.additionalParams !== undefined) configInput.additionalParams = options.additionalParams;
-
   // Caller-provided center/zoom win over derived viewport.
-  if (options.center !== undefined) {
-    configInput.center = Coordinates.fromArray(options.center);
-  } else if (derivedViewport) {
+  if (center !== undefined) {
+    configInput.center = Coordinates.fromArray(center);
+  } else if (derivedViewport && configInput.latitude === undefined && configInput.longitude === undefined) {
     configInput.longitude = derivedViewport.center[0];
     configInput.latitude = derivedViewport.center[1];
   }
-  if (options.zoom !== undefined) {
-    configInput.zoom = options.zoom;
-  } else if (derivedViewport) {
+  if (configInput.zoom === undefined && derivedViewport) {
     configInput.zoom = derivedViewport.zoom;
   }
 
