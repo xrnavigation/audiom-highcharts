@@ -3,7 +3,15 @@ import type {
   AudiomGlobalOptions,
   AudiomPluginOptions
 } from './types';
+import { AudiomDisplayMode } from './types';
 import { buildEmbedUrl } from './embed/build-url';
+import { createAudiomIframe } from './embed/iframe-manager';
+import { mountLayout, type LayoutHandle } from './ui/layout';
+import {
+  createPreviewButton,
+  mountPreviewButtonAfter,
+  type PreviewButtonHandle
+} from './ui/preview-button';
 
 /**
  * Internal: holds global defaults supplied via `init()`. A weak default so
@@ -13,6 +21,11 @@ let globalDefaults: AudiomGlobalOptions = {};
 
 /** Marker to prevent registering hooks twice on the same Highcharts namespace. */
 const REGISTERED_FLAG = '__audiomHighchartsRegistered';
+
+/** Per-chart layout handles, keyed by chart, so destroy can clean up. */
+const chartLayouts = new WeakMap<Highcharts.Chart, LayoutHandle>();
+/** Per-chart preview-button handles for Button mode / showOpenInTabButton. */
+const chartButtons = new WeakMap<Highcharts.Chart, PreviewButtonHandle>();
 
 /**
  * Returns true when the chart appears to be a Highcharts Maps chart. We rely
@@ -119,6 +132,60 @@ async function onChartLoad(
       urlLength: result.url.length,
       url: result.url
     });
+
+    const mode = options.displayMode ?? AudiomDisplayMode.Tabbed;
+    if (mode === AudiomDisplayMode.Component) {
+      // Caller is responsible for mounting AudiomComponent themselves.
+      return;
+    }
+
+    if (mode === AudiomDisplayMode.Button) {
+      const renderTo = (chart as unknown as { renderTo: HTMLElement }).renderTo;
+      const handle = mountPreviewButtonAfter(renderTo, {
+        url: result.url,
+        label: options.openInTabLabel,
+        title: options.audiomTabLabel ?? 'Open this map in Audiom'
+      });
+      chartButtons.set(chart, handle);
+      return;
+    }
+
+    const iframe = createAudiomIframe({
+      url: result.url,
+      title: options.audiomTabLabel ?? `Audiom map: ${titleText || 'chart'}`
+    });
+
+    // Optionally include the "Open in Audiom" anchor inside the Audiom panel.
+    let audiomElement: HTMLElement = iframe;
+    if (options.showOpenInTabButton) {
+      const wrapper = document.createElement('div');
+      wrapper.style.display = 'flex';
+      wrapper.style.flexDirection = 'column';
+      wrapper.style.width = '100%';
+      wrapper.style.height = '100%';
+      iframe.style.flex = '1 1 auto';
+      iframe.style.minHeight = '0';
+      const btn = createPreviewButton({
+        url: result.url,
+        label: options.openInTabLabel,
+        title: 'Open this map in Audiom (new tab)'
+      });
+      wrapper.appendChild(btn.element);
+      wrapper.appendChild(iframe);
+      audiomElement = wrapper;
+      chartButtons.set(chart, btn);
+    }
+
+    const handle = mountLayout(chart, {
+      mode,
+      chartLabel: options.highchartsTabLabel ?? 'Chart',
+      audiomLabel: options.audiomTabLabel ?? 'Audiom',
+      audiomElement,
+      onChartShown: () => {
+        try { chart.reflow(); } catch { /* ignore */ }
+      }
+    });
+    chartLayouts.set(chart, handle);
   } catch (err) {
     const error = err instanceof Error ? err : new Error(String(err));
     options.onError?.(error);
@@ -127,6 +194,15 @@ async function onChartLoad(
   }
 }
 
-function onChartDestroy(_chart: Highcharts.Chart): void {
-  // Cleanup will be implemented alongside the iframe/tab UI in Phase 5.
+function onChartDestroy(chart: Highcharts.Chart): void {
+  const handle = chartLayouts.get(chart);
+  if (handle) {
+    chartLayouts.delete(chart);
+    try { handle.destroy(); } catch { /* ignore */ }
+  }
+  const btn = chartButtons.get(chart);
+  if (btn) {
+    chartButtons.delete(chart);
+    try { btn.destroy(); } catch { /* ignore */ }
+  }
 }

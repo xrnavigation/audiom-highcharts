@@ -40,6 +40,24 @@ export interface AudiomHighchartsDevOptions {
    * @default '*'
    */
   allowOrigin?: string;
+  /**
+   * Public base URL to use in returned GeoJSON URLs instead of
+   * `http://localhost:<port>`. Set this to an ngrok / localtunnel URL when
+   * Chrome's Private Network Access policy blocks the Audiom embed from
+   * fetching GeoJSON from localhost.
+   *
+   * Example using localtunnel (after `npx localtunnel --port 5173`):
+   *   publicBase: 'https://abc123.loca.lt'
+   *
+   * Example using ngrok (after `ngrok http 5173`):
+   *   publicBase: 'https://abc123.ngrok-free.app'
+   *
+   * If omitted, the plugin falls back to the local Vite server URL and adds
+   * the `Access-Control-Allow-Private-Network: true` header required for
+   * Chrome's PNA preflight. This works in most configurations once the dev
+   * server is (re)started; if Chrome still blocks it, supply publicBase.
+   */
+  publicBase?: string;
 }
 
 const DEFAULTS = {
@@ -54,6 +72,7 @@ export function audiomHighchartsDev(
   const prefix = trimSlash(options.prefix ?? DEFAULTS.prefix);
   const maxBodyBytes = options.maxBodyBytes ?? DEFAULTS.maxBodyBytes;
   const allowOrigin = options.allowOrigin ?? DEFAULTS.allowOrigin;
+  const publicBase = options.publicBase ? trimSlash(options.publicBase) : null;
 
   // In-memory store. Keys are UUIDs; values are raw JSON bodies as Buffers
   // so we don't reparse on each GET. Cleared on dev-server restart.
@@ -73,6 +92,17 @@ export function audiomHighchartsDev(
         route: '',
         handle: handler as unknown as Connect.HandleFunction
       });
+
+      server.httpServer?.once('listening', () => {
+        const addr = server.httpServer?.address();
+        const port = addr && typeof addr === 'object' ? addr.port : 5173;
+        const base = publicBase ?? `http://localhost:${port}`;
+        const pnaNote = publicBase
+          ? `public base: ${publicBase}`
+          : 'using localhost (PNA headers enabled — restart dev server if Audiom blocks GeoJSON fetches)';
+        // eslint-disable-next-line no-console
+        console.info(`[audiom-highcharts] dev source server ready: ${base}${prefix}/upload (${pnaNote})`);
+      });
     }
   };
 
@@ -87,7 +117,7 @@ export function audiomHighchartsDev(
 
       // Preflight for either route.
       if (req.method === 'OPTIONS' && url.startsWith(`${prefix}/`)) {
-        writeCors(res, allowOrigin);
+        writeCors(req, res, allowOrigin);
         res.statusCode = 204;
         res.end();
         return;
@@ -98,13 +128,21 @@ export function audiomHighchartsDev(
           .then((body) => {
             const id = randomUUID();
             store.set(id, body);
-            const responseUrl = `${prefix}/${id}.geojson`;
-            writeCors(res, allowOrigin);
+            // If a publicBase is configured (e.g. ngrok/localtunnel), use it
+            // so the Audiom embed (running at a public HTTPS origin) can fetch
+            // the GeoJSON without hitting Chrome's Private Network Access
+            // policy. When publicBase is absent we fall back to a relative
+            // path and let the caller's fetch resolve it against the page
+            // origin (localhost); PNA headers on GET responses handle the
+            // cross-origin case in most Chrome versions.
+            const baseForUrl = publicBase ?? '';
+            const responseUrl = `${baseForUrl}${prefix}/${id}.geojson`;
+            writeCors(req, res, allowOrigin);
             res.setHeader('Content-Type', 'application/json');
             res.end(JSON.stringify({ url: responseUrl, id }));
           })
           .catch((err: Error) => {
-            writeCors(res, allowOrigin);
+            writeCors(req, res, allowOrigin);
             res.statusCode = err.message === 'too-large' ? 413 : 400;
             res.setHeader('Content-Type', 'text/plain');
             res.end(`audiom-highcharts dev uploader: ${err.message}`);
@@ -118,13 +156,13 @@ export function audiomHighchartsDev(
           const id = match[1] as string;
           const body = store.get(id);
           if (!body) {
-            writeCors(res, allowOrigin);
+            writeCors(req, res, allowOrigin);
             res.statusCode = 404;
             res.setHeader('Content-Type', 'text/plain');
             res.end('audiom-highcharts dev uploader: not found');
             return;
           }
-          writeCors(res, allowOrigin);
+          writeCors(req, res, allowOrigin);
           res.setHeader('Content-Type', 'application/geo+json');
           res.setHeader('Cache-Control', 'no-store');
           if (req.method === 'HEAD') {
@@ -145,10 +183,30 @@ function escapeRegex(s: string): string {
   return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
-function writeCors(res: { setHeader(k: string, v: string): void }, origin: string): void {
-  res.setHeader('Access-Control-Allow-Origin', origin);
+/**
+ * Write CORS headers, including Chrome's Private Network Access (PNA) header
+ * needed when a public origin (e.g. https://audiom-staging.herokuapp.com)
+ * fetches a loopback address (http://localhost:5173). Without
+ * `Access-Control-Allow-Private-Network: true` on the preflight, Chrome
+ * blocks the request with "Permission was denied for this request to access
+ * the `loopback` address space."
+ *
+ * Echo the request's `Origin` (when allowOrigin === '*') so credentialed
+ * fetches still pass; PNA preflights additionally require an explicit origin.
+ */
+function writeCors(
+  req: { headers: Record<string, string | string[] | undefined> },
+  res: { setHeader(k: string, v: string): void },
+  allowOrigin: string
+): void {
+  const reqOrigin = typeof req.headers.origin === 'string' ? req.headers.origin : undefined;
+  const originValue = allowOrigin === '*' && reqOrigin ? reqOrigin : allowOrigin;
+  res.setHeader('Access-Control-Allow-Origin', originValue);
+  res.setHeader('Vary', 'Origin');
   res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  // Chrome Private Network Access — required for public→loopback fetches.
+  res.setHeader('Access-Control-Allow-Private-Network', 'true');
 }
 
 function trimSlash(p: string): string {

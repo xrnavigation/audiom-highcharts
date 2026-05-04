@@ -1,9 +1,13 @@
 import Highcharts from 'highcharts/highmaps';
 import AudiomPlugin, { registerDevSourceUploader } from 'audiom-highcharts';
+import { setupDisplayModeToggle } from './mode-toggle';
+
+const displayMode = setupDisplayModeToggle();
 
 AudiomPlugin.init(Highcharts, {
   apiKey: 'wO35blaGsjJREGuXehqWU',
-  stepSize: '100km'
+  stepSize: '100km',
+  displayMode
 });
 
 const WORLD_TOPO_URL =

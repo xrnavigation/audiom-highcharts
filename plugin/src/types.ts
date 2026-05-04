@@ -22,6 +22,14 @@ export { FilterMode, VisualStyle };
 export enum AudiomDisplayMode {
   /** Tabbed UI: Highcharts on one tab, Audiom on the other. */
   Tabbed = 'tabbed',
+  /** Two panes side-by-side: Highcharts on the left, Audiom on the right. */
+  SideBySide = 'side-by-side',
+  /**
+   * No iframe — render only an "Open in Audiom" button beside the chart
+   * that opens the embed URL in a new tab. Useful when iframe embedding is
+   * blocked (e.g. Chrome/Edge Private Network Access during local dev).
+   */
+  Button = 'button',
   /** Caller embeds the AudiomComponent themselves; plugin renders nothing. */
   Component = 'component'
 }
@@ -98,6 +106,14 @@ export interface AudiomPluginOptions {
   displayMode?: AudiomDisplayMode;
   audiomTabLabel?: string;
   highchartsTabLabel?: string;
+  /**
+   * In Tabbed/SideBySide modes, also render an "Open in Audiom" anchor
+   * that opens the embed URL in a new tab. Defaults to `false`. In
+   * `displayMode: Button`, the button is always rendered regardless.
+   */
+  showOpenInTabButton?: boolean;
+  /** Override the preview button label. Default: "Open in Audiom". */
+  openInTabLabel?: string;
 
   // Visual
   showVisualMap?: boolean;
