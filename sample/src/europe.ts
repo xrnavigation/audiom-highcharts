@@ -1,17 +1,4 @@
-import Highcharts from 'highcharts/highmaps';
-import AudiomPlugin, { registerDevSourceUploader } from 'audiom-highcharts';
-import { setupDisplayModeToggle } from './mode-toggle';
-
-const displayMode = setupDisplayModeToggle();
-
-AudiomPlugin.init(Highcharts, {
-  apiKey: 'wO35blaGsjJREGuXehqWU',
-  stepSize: '100km',
-  displayMode
-});
-
-const EUROPE_TOPO_URL =
-  'https://code.highcharts.com/mapdata/custom/europe.topo.json';
+import { renderMap, BLUE_LOG_STOPS } from './setup';
 
 // GDP per capita (USD, approx 2023). hc-key matches Highcharts Europe map.
 const data: Array<[string, number]> = [
@@ -47,43 +34,17 @@ const data: Array<[string, number]> = [
   ['ua', 4533]
 ];
 
-async function bootstrap(): Promise<void> {
-  registerDevSourceUploader();
-
-  const topology = await fetch(EUROPE_TOPO_URL).then((r) => r.json());
-
-  Highcharts.mapChart('container', {
-    chart: { map: topology },
-    title: { text: 'Europe — GDP per capita (USD, approx 2023)' },
-    subtitle: { text: 'Source: World Bank — illustrative subset' },
-    mapNavigation: {
-      enabled: true,
-      buttonOptions: { verticalAlign: 'bottom' }
-    },
-    colorAxis: {
-      min: 4000,
-      max: 130000,
-      type: 'logarithmic',
-      stops: [
-        [0, '#EFEFFF'],
-        [0.5, '#4444FF'],
-        [1, '#000033']
-      ]
-    },
-    series: [
-      {
-        type: 'map',
-        name: 'GDP per capita',
-        data,
-        joinBy: 'hc-key',
-        states: { hover: { color: '#a4edba' } },
-        dataLabels: { enabled: false },
-        tooltip: {
-          pointFormat: '{point.name}: <b>${point.value:,.0f}</b>'
-        }
-      }
-    ]
-  });
-}
-
-void bootstrap();
+void renderMap({
+  topologyUrl: 'https://code.highcharts.com/mapdata/custom/europe.topo.json',
+  title: 'Europe — GDP per capita (USD, approx 2023)',
+  subtitle: 'Source: World Bank — illustrative subset',
+  seriesName: 'GDP per capita',
+  data,
+  colorAxis: {
+    min: 4000,
+    max: 130000,
+    type: 'logarithmic',
+    stops: BLUE_LOG_STOPS
+  },
+  tooltipPointFormat: '{point.name}: <b>${point.value:,.0f}</b>'
+});

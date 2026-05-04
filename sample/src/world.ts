@@ -1,17 +1,4 @@
-import Highcharts from 'highcharts/highmaps';
-import AudiomPlugin, { registerDevSourceUploader } from 'audiom-highcharts';
-import { setupDisplayModeToggle } from './mode-toggle';
-
-const displayMode = setupDisplayModeToggle();
-
-AudiomPlugin.init(Highcharts, {
-  apiKey: 'wO35blaGsjJREGuXehqWU',
-  stepSize: '100km',
-  displayMode
-});
-
-const WORLD_TOPO_URL =
-  'https://code.highcharts.com/mapdata/custom/world.topo.json';
+import { renderMap, BLUE_LOG_STOPS } from './setup';
 
 // Population (millions, approx 2022). hc-key matches Highcharts world map ISO-2 codes.
 const data: Array<[string, number]> = [
@@ -42,43 +29,17 @@ const data: Array<[string, number]> = [
   ['au', 26]
 ];
 
-async function bootstrap(): Promise<void> {
-  registerDevSourceUploader();
-
-  const topology = await fetch(WORLD_TOPO_URL).then((r) => r.json());
-
-  Highcharts.mapChart('container', {
-    chart: { map: topology },
-    title: { text: 'World Population (millions, approx 2022)' },
-    subtitle: { text: 'Source: World Bank — illustrative subset' },
-    mapNavigation: {
-      enabled: true,
-      buttonOptions: { verticalAlign: 'bottom' }
-    },
-    colorAxis: {
-      min: 1,
-      max: 1500,
-      type: 'logarithmic',
-      stops: [
-        [0, '#EFEFFF'],
-        [0.5, '#4444FF'],
-        [1, '#000033']
-      ]
-    },
-    series: [
-      {
-        type: 'map',
-        name: 'Population',
-        data,
-        joinBy: 'hc-key',
-        states: { hover: { color: '#a4edba' } },
-        dataLabels: { enabled: false },
-        tooltip: {
-          pointFormat: '{point.name}: <b>{point.value}M</b>'
-        }
-      }
-    ]
-  });
-}
-
-void bootstrap();
+void renderMap({
+  topologyUrl: 'https://code.highcharts.com/mapdata/custom/world.topo.json',
+  title: 'World Population (millions, approx 2022)',
+  subtitle: 'Source: World Bank — illustrative subset',
+  seriesName: 'Population',
+  data,
+  colorAxis: {
+    min: 1,
+    max: 1500,
+    type: 'logarithmic',
+    stops: BLUE_LOG_STOPS
+  },
+  tooltipPointFormat: '{point.name}: <b>{point.value}M</b>'
+});
