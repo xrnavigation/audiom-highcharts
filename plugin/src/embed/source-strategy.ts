@@ -3,8 +3,17 @@ import type { IAudiomSource } from '@xrnavigation/audiom-embedder';
 import { AudiomSourceStrategy, type AudiomPluginOptions } from '../types';
 import type { FeatureCollection } from '../geo/types';
 import { extractGeoJSON } from '../extractors';
-import { simplifyFeatureCollection } from '../geo/simplify';
-import { geojsonToDataUri } from './data-uri';
+import {
+  inlineBackend,
+  restBackend,
+  devServerBackend,
+  staticBackend
+} from '../sources';
+import type {
+  SourceBackend,
+  ResolvedBackend,
+  AudiomSourceValue
+} from '../sources/types';
 import { getRegisteredDevSourceUploader } from '../dev/uploader';
 
 /**
@@ -18,19 +27,24 @@ export interface ResolvedSources {
   geojson: FeatureCollection | null;
   /** Strategy that actually produced the result (after Auto resolution). */
   strategy: AudiomSourceStrategy;
+  /** Backend that produced `sources` (when one was used). */
+  backend?: SourceBackend;
 }
 
 const DEFAULT_TOLERANCE = 0.01;
 
 /**
- * Resolve the data source(s) Audiom should consume. See
- * {@link AudiomSourceStrategy} for the priority order Auto follows:
- * passthrough → upload → inline.
+ * Resolve the data source(s) Audiom should consume.
  *
- * A boundaries-only URL strategy was deliberately dropped: a bare CDN URL
- * yields just the outline because Audiom can't merge per-feature data
- * back in over PostMessage, so the chart's choropleth values would be
- * lost. Inline + Upload both stamp the values into feature properties.
+ * Selection priority (under `AudiomSourceStrategy.Auto`):
+ *   1. `options.sources` supplied                    → static passthrough
+ *   2. `options.backend` supplied                    → use it
+ *   3. Globally-registered dev uploader present      → devServerBackend
+ *   4. `options.uploadGeoJSON` callback supplied     → wrap as restBackend-shape
+ *   5. Fallback                                      → inlineBackend
+ *
+ * Explicit `AudiomSourceStrategy` values override the priority and force
+ * a specific resolution path.
  */
 export async function resolveSources(
   chart: Highcharts.Chart,
@@ -53,38 +67,91 @@ export async function resolveSources(
     return { sources: supplied, geojson: null, strategy: requested };
   }
 
-  // Dev uploader strategy (explicit, or auto when one has been registered).
-  const uploader = getRegisteredDevSourceUploader();
-  if (
-    requested === AudiomSourceStrategy.DevUploader ||
-    (requested === AudiomSourceStrategy.Auto && uploader)
-  ) {
-    if (!uploader) {
-      throw new Error(
-        'audiom-highcharts: sourceStrategy=DevUploader requires registerDevSourceUploader() to have resolved first.'
-      );
-    }
-    const url = await uploader.upload(collection);
-    return { sources: [url], geojson: collection, strategy: AudiomSourceStrategy.DevUploader };
-  }
+  // Pick a backend to put the collection through.
+  const resolved = pickBackend(requested, options);
+  const ctx = {
+    chartId: chart.index,
+    chartTitle:
+      (chart.title as unknown as { textStr?: string } | undefined)?.textStr ??
+      undefined,
+    contentType: 'application/geo+json'
+  };
+  const sources: AudiomSourceValue[] = await resolved.backend.put(collection, ctx);
+  return {
+    sources,
+    geojson: collection,
+    strategy: backendToStrategy(resolved, requested),
+    backend: resolved.backend
+  };
+}
 
-  // Upload strategy (explicit, or auto when a hook is provided).
-  if (
-    requested === AudiomSourceStrategy.Upload ||
-    (requested === AudiomSourceStrategy.Auto && options.uploadGeoJSON)
-  ) {
-    if (!options.uploadGeoJSON) {
-      throw new Error(
-        'audiom-highcharts: sourceStrategy=Upload requires an uploadGeoJSON callback.'
-      );
-    }
-    const url = await options.uploadGeoJSON(collection);
-    return { sources: [url], geojson: collection, strategy: AudiomSourceStrategy.Upload };
-  }
-
-  // Inline (default fallback). Simplify first to keep URL size sane.
+/** Choose which backend to use for this resolution. */
+function pickBackend(
+  requested: AudiomSourceStrategy,
+  options: AudiomPluginOptions
+): ResolvedBackend {
   const tolerance = options.simplifyTolerance ?? DEFAULT_TOLERANCE;
-  const slim = simplifyFeatureCollection(collection, tolerance);
-  const dataUri = geojsonToDataUri(slim);
-  return { sources: [dataUri], geojson: collection, strategy: AudiomSourceStrategy.Inline };
+
+  // Explicit strategies bypass the priority ladder.
+  if (requested === AudiomSourceStrategy.Inline) {
+    return { backend: inlineBackend({ simplifyTolerance: tolerance }), origin: 'option' };
+  }
+  if (requested === AudiomSourceStrategy.DevUploader) {
+    return { backend: resolveDevServerBackend(), origin: 'option' };
+  }
+  if (requested === AudiomSourceStrategy.Upload) {
+    if (options.backend) return { backend: options.backend, origin: 'option' };
+    if (options.uploadGeoJSON) {
+      return { backend: callbackBackend(options.uploadGeoJSON), origin: 'legacy-callback' };
+    }
+    throw new Error(
+      'audiom-highcharts: sourceStrategy=Upload requires either `backend` or the (deprecated) `uploadGeoJSON` callback.'
+    );
+  }
+
+  // Auto: explicit backend > sources passthrough > dev uploader > legacy callback > inline.
+  if (options.backend) return { backend: options.backend, origin: 'option' };
+  if (options.sources?.length) {
+    return { backend: staticBackend(options.sources as AudiomSourceValue[]), origin: 'option' };
+  }
+  if (getRegisteredDevSourceUploader()) {
+    return { backend: resolveDevServerBackend(), origin: 'legacy-dev' };
+  }
+  if (options.uploadGeoJSON) {
+    return { backend: callbackBackend(options.uploadGeoJSON), origin: 'legacy-callback' };
+  }
+  return { backend: inlineBackend({ simplifyTolerance: tolerance }), origin: 'default' };
+}
+
+/** Wrap the legacy `uploadGeoJSON(collection): Promise<string>` callback. */
+function callbackBackend(
+  cb: (c: FeatureCollection) => Promise<string>
+): SourceBackend {
+  return {
+    name: 'legacy-uploadGeoJSON',
+    async put(collection): Promise<AudiomSourceValue[]> {
+      const url = await cb(collection);
+      return [url];
+    }
+  };
+}
+
+/** Build a dev-server backend, preferring the registered handle's endpoint. */
+function resolveDevServerBackend(): SourceBackend {
+  const reg = getRegisteredDevSourceUploader();
+  return devServerBackend(reg ? { endpoint: reg.endpoint } : {});
+}
+
+/** Map a resolved backend back to a strategy enum value for log/return parity. */
+function backendToStrategy(
+  resolved: ResolvedBackend,
+  requested: AudiomSourceStrategy
+): AudiomSourceStrategy {
+  if (requested !== AudiomSourceStrategy.Auto) return requested;
+  switch (resolved.backend.name) {
+    case 'inline':         return AudiomSourceStrategy.Inline;
+    case 'dev-server':     return AudiomSourceStrategy.DevUploader;
+    case 'static':         return AudiomSourceStrategy.Passthrough;
+    default:               return AudiomSourceStrategy.Upload;
+  }
 }

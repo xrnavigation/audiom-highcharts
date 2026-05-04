@@ -13,7 +13,8 @@ const SHARED_API_KEY = 'wO35blaGsjJREGuXehqWU';
 // A locally running Audiom dev server. Loopback ↔ loopback fetches are
 // exempt from Chrome/Edge Private Network Access, so the iframe can fetch
 // GeoJSON from this same origin without the policy kicking in.
-const LOCAL_AUDIOM_BASE_URL = 'http://localhost:3000';
+//const LOCAL_AUDIOM_BASE_URL = 'http://localhost:3000';
+const LOCAL_AUDIOM_BASE_URL = 'https://audiom-staging.herokuapp.com';
 
 let initialized = false;
 let cachedDisplayMode: ReturnType<typeof setupDisplayModeToggle> | null = null;
@@ -29,7 +30,7 @@ export function setupSample(): { displayMode: ReturnType<typeof setupDisplayMode
       apiKey: SHARED_API_KEY,
       stepSize: '100km',
       baseUrl: LOCAL_AUDIOM_BASE_URL,
-      displayMode: cachedDisplayMode
+      displayMode: cachedDisplayMode,
     });
     registerDevSourceUploader();
     initialized = true;

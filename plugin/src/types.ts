@@ -86,6 +86,19 @@ export interface AudiomPluginOptions {
   sources?: IAudiomSource[] | string[];
   sourceStrategy?: AudiomSourceStrategy;
   /**
+   * Pluggable storage backend for the extracted GeoJSON. When provided,
+   * supersedes `uploadGeoJSON` and the legacy `registerDevSourceUploader`
+   * registration. See `audiom-highcharts/sources` for built-in factories
+   * (`inlineBackend`, `staticBackend`, `restBackend`, `s3PresignedBackend`,
+   * `devServerBackend`, `memoryBackend`) or implement your own
+   * `SourceBackend`.
+   */
+  backend?: import('./sources/types').SourceBackend;
+  /**
+   * @deprecated Pass `backend: restBackend({ endpoint })` (or your own
+   * SourceBackend) instead. Still honoured for back-compat: the plugin
+   * wraps it as a one-shot REST-style backend.
+   *
    * Hook invoked when {@link AudiomSourceStrategy.Upload} (or auto) decides to
    * hand the extracted FeatureCollection to a host-provided endpoint.
    * Must return a URL the Audiom iframe can fetch.

@@ -26,8 +26,8 @@ import { audiomHighchartsDev } from 'audiom-highcharts/vite';
 //          ngrok http 5173                    →  https://abc123.ngrok-free.app
 //      Then uncomment the `publicBase` option below.
 //
-//   3. (Per-machine workaround) Disable Chrome's PNA enforcement at
-//      chrome://flags/#block-insecure-private-network-requests
+//   3. (Per-machine workaround) Disable Chromium's PNA enforcement at
+//      chrome://flags/#local-network-access-check
 // ----------------------------------------------------------------------------
 
 export default defineConfig({

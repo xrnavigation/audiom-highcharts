@@ -13,6 +13,14 @@ import { mountLayout } from './ui/layout';
 import { ensureStylesInjected } from './ui/styles';
 import { createPreviewButton, mountPreviewButtonAfter } from './ui/preview-button';
 import {
+  inlineBackend,
+  staticBackend,
+  restBackend,
+  s3PresignedBackend,
+  devServerBackend,
+  memoryBackend
+} from './sources';
+import {
   registerDevSourceUploader,
   getRegisteredDevSourceUploader
 } from './dev/uploader';
@@ -36,6 +44,12 @@ export {
   ensureStylesInjected,
   createPreviewButton,
   mountPreviewButtonAfter,
+  inlineBackend,
+  staticBackend,
+  restBackend,
+  s3PresignedBackend,
+  devServerBackend,
+  memoryBackend,
   registerDevSourceUploader,
   getRegisteredDevSourceUploader
 };
@@ -47,6 +61,18 @@ export type {
 export type { LayoutHandle, MountLayoutOptions } from './ui/layout';
 export type { CreateIframeOptions } from './embed/iframe-manager';
 export type { PreviewButtonOptions, PreviewButtonHandle } from './ui/preview-button';
+export type {
+  SourceBackend,
+  SourcePutContext,
+  AudiomSourceValue,
+  ResolvedBackend,
+  InlineBackendOptions,
+  RestBackendOptions,
+  S3PresignedBackendOptions,
+  PresignedPut,
+  DevServerBackendOptions,
+  MemoryBackendHandle
+} from './sources';
 
 export type {
   AudiomPluginOptions,
