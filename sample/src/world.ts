@@ -41,5 +41,6 @@ void renderMap({
     type: 'logarithmic',
     stops: BLUE_LOG_STOPS
   },
-  tooltipPointFormat: '{point.name}: <b>{point.value}M</b>'
+  tooltipPointFormat: '{point.name}: <b>{point.value}M</b>',
+  rules: 'population'
 });

@@ -38,7 +38,8 @@ export type { PreviewButtonOptions, PreviewButtonHandle } from './ui/preview-but
 export type {
   AudiomPluginOptions,
   AudiomGlobalOptions,
-  AudiomCenter
+  AudiomCenter,
+  AudiomEmbedReadyInfo
 } from './types';
 export {
   AudiomDisplayMode,

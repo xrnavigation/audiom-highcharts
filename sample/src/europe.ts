@@ -46,5 +46,6 @@ void renderMap({
     type: 'logarithmic',
     stops: BLUE_LOG_STOPS
   },
-  tooltipPointFormat: '{point.name}: <b>${point.value:,.0f}</b>'
+  tooltipPointFormat: '{point.name}: <b>${point.value:,.0f}</b>',
+  rules: 'gdp'
 });

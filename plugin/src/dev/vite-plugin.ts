@@ -75,7 +75,10 @@ export function audiomHighchartsDev(
 
   // In-memory store. Keys are UUIDs; values are raw JSON bodies as Buffers
   // so we don't reparse on each GET. Cleared on dev-server restart.
-  const store = new Map<string, Buffer>();
+  // The ext determines both the URL suffix and the served Content-Type:
+  // 'geojson' → application/geo+json (default), 'json' → application/json.
+  type Stored = { body: Buffer; ext: 'geojson' | 'json' };
+  const store = new Map<string, Stored>();
 
   return {
     name: 'audiom-highcharts:dev-source-server',
@@ -108,7 +111,7 @@ export function audiomHighchartsDev(
   function makeHandler(): Connect.NextHandleFunction {
     const uploadPath = `${prefix}/upload`;
     const getPattern = new RegExp(
-      `^${escapeRegex(prefix)}/([0-9a-fA-F-]+)\\.geojson(?:\\?.*)?$`
+      `^${escapeRegex(prefix)}/([0-9a-fA-F-]+)\\.(geojson|json)(?:\\?.*)?$`
     );
 
     return (req, res, next) => {
@@ -123,10 +126,15 @@ export function audiomHighchartsDev(
       }
 
       if (req.method === 'POST' && url === uploadPath) {
+        // Optional ?ext=json|geojson lets callers upload non-GeoJSON JSON
+        // (e.g. Audiom rules files) and have it served back with the
+        // matching Content-Type. Defaults to 'geojson' for back-compat.
+        const extQuery = parseExtQuery(req.url ?? '');
+        const ext: 'geojson' | 'json' = extQuery === 'json' ? 'json' : 'geojson';
         readBody(req, maxBodyBytes)
           .then((body) => {
             const id = randomUUID();
-            store.set(id, body);
+            store.set(id, { body, ext });
             // If a publicBase is configured (e.g. ngrok/localtunnel), use it
             // so the Audiom embed (running at a public HTTPS origin) can fetch
             // the GeoJSON without hitting Chrome's Private Network Access
@@ -135,10 +143,10 @@ export function audiomHighchartsDev(
             // origin (localhost); PNA headers on GET responses handle the
             // cross-origin case in most Chrome versions.
             const baseForUrl = publicBase ?? '';
-            const responseUrl = `${baseForUrl}${prefix}/${id}.geojson`;
+            const responseUrl = `${baseForUrl}${prefix}/${id}.${ext}`;
             writeCors(req, res, allowOrigin);
             res.setHeader('Content-Type', 'application/json');
-            res.end(JSON.stringify({ url: responseUrl, id }));
+            res.end(JSON.stringify({ url: responseUrl, id, ext }));
           })
           .catch((err: Error) => {
             writeCors(req, res, allowOrigin);
@@ -153,8 +161,9 @@ export function audiomHighchartsDev(
         const match = getPattern.exec(url);
         if (match) {
           const id = match[1] as string;
-          const body = store.get(id);
-          if (!body) {
+          const requestedExt = match[2] as 'geojson' | 'json';
+          const entry = store.get(id);
+          if (!entry || entry.ext !== requestedExt) {
             writeCors(req, res, allowOrigin);
             res.statusCode = 404;
             res.setHeader('Content-Type', 'text/plain');
@@ -162,13 +171,16 @@ export function audiomHighchartsDev(
             return;
           }
           writeCors(req, res, allowOrigin);
-          res.setHeader('Content-Type', 'application/geo+json');
+          res.setHeader(
+            'Content-Type',
+            entry.ext === 'json' ? 'application/json' : 'application/geo+json'
+          );
           res.setHeader('Cache-Control', 'no-store');
           if (req.method === 'HEAD') {
             res.end();
             return;
           }
-          res.end(body);
+          res.end(entry.body);
           return;
         }
       }
@@ -180,6 +192,13 @@ export function audiomHighchartsDev(
 
 function escapeRegex(s: string): string {
   return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function parseExtQuery(rawUrl: string): string | null {
+  const q = rawUrl.split('?')[1];
+  if (!q) return null;
+  const params = new URLSearchParams(q);
+  return params.get('ext');
 }
 
 /**

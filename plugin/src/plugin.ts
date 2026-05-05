@@ -133,6 +133,17 @@ async function onChartLoad(
       url: result.url
     });
 
+    try {
+      options.onEmbedReady?.({
+        embedUrl: result.url,
+        sources: result.sources,
+        chart
+      });
+    } catch (cbErr) {
+      // eslint-disable-next-line no-console
+      console.error('[audiom-highcharts] onEmbedReady threw', cbErr);
+    }
+
     const mode = options.displayMode ?? AudiomDisplayMode.Tabbed;
 
     if (mode === AudiomDisplayMode.Button) {

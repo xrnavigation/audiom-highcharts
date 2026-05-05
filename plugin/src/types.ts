@@ -11,6 +11,7 @@ import {
   type IAudiomEmbedConfig
 } from '@xrnavigation/audiom-embedder/dist/AudiomEmbedConfig';
 import type { SourceBackend } from './sources/types';
+import type { AudiomSourceValue } from './sources/types';
 
 export { FilterMode, VisualStyle };
 
@@ -67,9 +68,42 @@ interface AudiomPluginOnlyOptions {
   /** Audiom base URL. Defaults to `AudiomEmbedConfig.defaultBaseURL`. */
   baseUrl?: string;
 
+  /**
+   * URL to a hosted Audiom rules JSON file (v2 format). When set, every
+   * GeoJSON URL produced by `backend.put()` is wrapped into an
+   * `IAudiomSource` with this `rules` URL attached, so Audiom applies
+   * the rules to that source. Ignored when `sources` is supplied
+   * explicitly (callers can attach `rules` per-source themselves).
+   */
+  rules?: string;
+
   // Callbacks
   onReady?: (handler: AudiomMessageHandler) => void;
   onError?: (error: Error) => void;
+  /**
+   * Invoked once the embed URL has been built (after the backend resolves
+   * GeoJSON sources). Receives the final embed URL plus the resolved
+   * `sources` list, so the host can do things like mount a "View GeoJSON"
+   * link beside the chart.
+   */
+  onEmbedReady?: (info: AudiomEmbedReadyInfo) => void;
+}
+
+/**
+ * Payload passed to `AudiomPluginOptions.onEmbedReady` after the embed URL
+ * has been built and any backend uploads have completed.
+ */
+export interface AudiomEmbedReadyInfo {
+  /** Final Audiom embed URL (with sources baked in). */
+  embedUrl: string;
+  /**
+   * Resolved sources list as it was passed to the embedder. Each entry is
+   * either a URL string or an `IAudiomSource`-shaped object (when
+   * `rules` was attached or the backend returned objects).
+   */
+  sources: AudiomSourceValue[];
+  /** The Highcharts chart instance the embed was built for. */
+  chart: Highcharts.Chart;
 }
 
 /**

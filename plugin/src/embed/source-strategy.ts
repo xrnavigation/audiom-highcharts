@@ -55,6 +55,17 @@ export async function resolveSources(
       undefined,
     contentType: 'application/geo+json'
   };
-  const sources: AudiomSourceValue[] = await options.backend.put(collection, ctx);
+  const raw: AudiomSourceValue[] = await options.backend.put(collection, ctx);
+  // When `options.rules` is set, wrap any string URLs into IAudiomSource
+  // objects so the embedder forwards `rules` per-source. Object entries are
+  // left alone — callers that hand back full IAudiomSource configs from a
+  // backend already control their own `rules` field.
+  const sources: AudiomSourceValue[] = options.rules
+    ? raw.map((s) =>
+        typeof s === 'string'
+          ? ({ source: s, rules: options.rules, type: 'geojson' } as IAudiomSource)
+          : s
+      )
+    : raw;
   return { sources, geojson: collection, backend: options.backend };
 }

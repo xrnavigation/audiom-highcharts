@@ -8,11 +8,13 @@ import {
 import type { AudiomPluginOptions } from '../types';
 import { resolveSources } from './source-strategy';
 import { viewportFor } from '../geo/viewport';
-import type { SourceBackend } from '../sources/types';
+import type { SourceBackend, AudiomSourceValue } from '../sources/types';
 
 export interface BuildEmbedResult {
   url: string;
   config: AudiomEmbedConfig;
+  /** Resolved sources (URLs and/or IAudiomSource objects) handed to the embedder. */
+  sources: AudiomSourceValue[];
   /** Backend that produced the sources, when one was used. */
   backend?: SourceBackend;
 }
@@ -48,8 +50,10 @@ export async function buildEmbedUrl(
     showOpenInTabButton: _showOpenInTabButton,
     openInTabLabel: _openInTabLabel,
     baseUrl: _baseUrl,
+    rules: _rules,
     onReady: _onReady,
     onError: _onError,
+    onEmbedReady: _onEmbedReady,
     ...embedderPassthrough
   } = options;
 
@@ -71,5 +75,5 @@ export async function buildEmbedUrl(
 
   const config = AudiomEmbedConfig.dynamic(configInput);
   const url = options.baseUrl ? config.toUrl(options.baseUrl) : config.toUrl();
-  return { url, config, backend };
+  return { url, config, sources, backend };
 }
