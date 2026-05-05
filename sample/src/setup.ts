@@ -100,6 +100,10 @@ export interface SampleMapConfig {
   tooltipPointFormat: string;
   /** Which canned Audiom rules file to attach. */
   rules?: RulesKind;
+  /** Override the Audiom embed's initial center (`[lon, lat]`). */
+  audiomCenter?: [number, number];
+  /** Override the Audiom embed's initial zoom. */
+  audiomZoom?: number;
 }
 
 /**
@@ -190,6 +194,8 @@ export async function renderMap(config: SampleMapConfig): Promise<Highcharts.Cha
     ],
     audiom: {
       ...(rulesUrl ? { rules: rulesUrl } : {}),
+      ...(config.audiomCenter ? { center: config.audiomCenter } : {}),
+      ...(config.audiomZoom !== undefined ? { zoom: config.audiomZoom } : {}),
       onEmbedReady: (info: AudiomEmbedReadyInfo) => {
         const url = firstSourceUrl(info.sources);
         if (!url || !container) return;

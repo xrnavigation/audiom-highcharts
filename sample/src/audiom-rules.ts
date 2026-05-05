@@ -30,8 +30,6 @@ export const POPULATION_RULES: AudiomRulesFile = {
         ruleType: 'choropleth_region',
         ruleName: [
           'concat',
-          ['coalesce', ['get', 'name'], 'Unknown country'],
-          ': ',
           ['to-string', ['get', 'value']],
           ' million people'
         ],
@@ -44,11 +42,7 @@ export const POPULATION_RULES: AudiomRulesFile = {
       filter: ['==', ['get', 'ruleType'], 'choropleth_region'],
       output: {
         ruleType: 'choropleth_region',
-        ruleName: [
-          'concat',
-          ['coalesce', ['get', 'name'], 'Unknown country'],
-          ' (no population data)'
-        ],
+        ruleName: 'no population data',
         name: ['coalesce', ['get', 'name'], 'Unknown country'],
         passable: true
       }
@@ -72,8 +66,7 @@ export const GDP_RULES: AudiomRulesFile = {
         ruleType: 'choropleth_region',
         ruleName: [
           'concat',
-          ['coalesce', ['get', 'name'], 'Unknown country'],
-          ': $',
+          '$',
           ['to-string', ['get', 'value']],
           ' GDP per capita'
         ],
@@ -86,11 +79,7 @@ export const GDP_RULES: AudiomRulesFile = {
       filter: ['==', ['get', 'ruleType'], 'choropleth_region'],
       output: {
         ruleType: 'choropleth_region',
-        ruleName: [
-          'concat',
-          ['coalesce', ['get', 'name'], 'Unknown country'],
-          ' (no GDP data)'
-        ],
+        ruleName: 'no GDP data',
         name: ['coalesce', ['get', 'name'], 'Unknown country'],
         passable: true
       }
