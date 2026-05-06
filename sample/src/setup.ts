@@ -7,6 +7,8 @@
 import Highcharts from 'highcharts/highmaps';
 import AudiomPlugin, {
   SourceBackend,
+  uploadAudiomRules,
+  AudiomVisibility,
   type AudiomEmbedReadyInfo,
   type AudiomSourceValue
 } from 'audiom-highcharts';
@@ -20,6 +22,37 @@ const SHARED_API_KEY = 'wO35blaGsjJREGuXehqWU';
 // running Audiom locally — loopback ↔ loopback fetches are exempt from
 // Chrome/Edge Private Network Access, so no tunnel is needed.
 const AUDIOM_BASE_URL = 'https://audiom-staging.herokuapp.com';
+
+/**
+ * Optional: when these Vite env vars are set, the sample uploads its
+ * extracted GeoJSON and rules straight to Audiom's REST API instead of
+ * the in-process dev server. Set in `.env.local`:
+ *   VITE_AUDIOM_API_URL=https://api.audiom.app
+ *   VITE_AUDIOM_API_KEY=...
+ *   VITE_AUDIOM_ORG_ID=42
+ *   VITE_AUDIOM_FRONTEND_URL=https://app.audiom.app   (optional)
+ */
+interface AudiomDirectConfig {
+  apiUrl: string;
+  apiKey: string;
+  organizationId: number;
+  frontendUrl?: string;
+}
+function readAudiomDirectConfig(): AudiomDirectConfig | null {
+  const env = import.meta.env as Record<string, string | undefined>;
+  const apiUrl = env.VITE_AUDIOM_API_URL;
+  const apiKey = env.VITE_AUDIOM_API_KEY;
+  const orgRaw = env.VITE_AUDIOM_ORG_ID;
+  const orgId = orgRaw ? Number(orgRaw) : NaN;
+  if (!apiUrl || !apiKey || !Number.isFinite(orgId)) return null;
+  return {
+    apiUrl,
+    apiKey,
+    organizationId: orgId,
+    frontendUrl: env.VITE_AUDIOM_FRONTEND_URL
+  };
+}
+const AUDIOM_DIRECT = readAudiomDirectConfig();
 
 /**
  * Tag name for which canned rules file to use. `null` means no rules file
@@ -40,28 +73,55 @@ let cachedDisplayMode: ReturnType<typeof setupDisplayModeToggle> | null = null;
 const rulesUrlCache = new Map<Exclude<RulesKind, null>, Promise<string>>();
 
 /**
- * POST a rules JSON file to the dev server and return the served URL.
- * Uses `?ext=json` so the server replies with `application/json`.
+ * POST a rules JSON file and return the served URL. Routes to either the
+ * Audiom REST API (when VITE_AUDIOM_* env vars are set) or the in-process
+ * Vite dev server (default).
  */
 async function uploadRules(kind: Exclude<RulesKind, null>): Promise<string> {
   let pending = rulesUrlCache.get(kind);
   if (pending) return pending;
-  pending = (async () => {
-    const res = await fetch('/__audiom__/upload?ext=json', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(RULES_BY_KIND[kind])
-    });
-    if (!res.ok) {
-      throw new Error(`rules upload failed: ${res.status} ${await res.text()}`);
-    }
-    const { url } = (await res.json()) as { url: string };
-    // Resolve relative URL (dev plugin returns "/__audiom__/<id>.json") to
-    // an absolute URL so the Audiom iframe (different origin) can fetch it.
-    return new URL(url, window.location.origin).toString();
-  })();
+  pending = AUDIOM_DIRECT
+    ? uploadRulesToAudiom(kind, AUDIOM_DIRECT)
+    : uploadRulesToDevServer(kind);
   rulesUrlCache.set(kind, pending);
   return pending;
+}
+
+async function uploadRulesToDevServer(
+  kind: Exclude<RulesKind, null>
+): Promise<string> {
+  const res = await fetch('/__audiom__/upload?ext=json', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(RULES_BY_KIND[kind])
+  });
+  if (!res.ok) {
+    throw new Error(`rules upload failed: ${res.status} ${await res.text()}`);
+  }
+  const { url } = (await res.json()) as { url: string };
+  // Resolve relative URL (dev plugin returns "/__audiom__/<id>.json") to
+  // an absolute URL so the Audiom iframe (different origin) can fetch it.
+  return new URL(url, window.location.origin).toString();
+}
+
+async function uploadRulesToAudiom(
+  kind: Exclude<RulesKind, null>,
+  cfg: AudiomDirectConfig
+): Promise<string> {
+  // Slug is unique per organization. Suffix with a timestamp so reruns of
+  // the demo don't 409 on a previously-uploaded slug.
+  const slug = `audiom-highcharts-sample-${kind}-${Date.now().toString(36)}`;
+  const result = await uploadAudiomRules({
+    apiUrl: cfg.apiUrl,
+    apiKey: cfg.apiKey,
+    organizationId: cfg.organizationId,
+    frontendUrl: cfg.frontendUrl,
+    slug,
+    name: `Audiom-Highcharts sample (${kind})`,
+    visibility: AudiomVisibility.ApiKey,
+    rules: RULES_BY_KIND[kind] as Parameters<typeof uploadAudiomRules>[0]['rules']
+  });
+  return result.rulesUrl;
 }
 
 /**
@@ -76,12 +136,22 @@ export function setupSample(): { displayMode: ReturnType<typeof setupDisplayMode
       stepSize: '100km',
       baseUrl: AUDIOM_BASE_URL,
       displayMode: cachedDisplayMode,
-      // The Vite dev plugin (audiomHighchartsDev() in vite.config.ts) hosts
-      // an upload endpoint at /__audiom__/upload. SourceBackend.devServer()
-      // POSTs extracted GeoJSON there and hands the returned URL to Audiom.
-      // For production, swap for SourceBackend.rest({ endpoint: '/api/...' })
-      // or SourceBackend.s3Presigned({ getPresignedPut: ... }).
-      backend: SourceBackend.devServer()
+      // Backend selection:
+      //   - VITE_AUDIOM_* env set → upload directly to Audiom's REST API
+      //     (POST /datasources, returns /api/datasources/<id>.json).
+      //   - otherwise            → dev server hosted by audiomHighchartsDev()
+      //     in vite.config.ts. For production behind your own infra, swap
+      //     for SourceBackend.rest({ endpoint: '/api/...' }) or
+      //     SourceBackend.s3Presigned({ getPresignedPut: ... }).
+      backend: AUDIOM_DIRECT
+        ? SourceBackend.audiom({
+            apiUrl: AUDIOM_DIRECT.apiUrl,
+            apiKey: AUDIOM_DIRECT.apiKey,
+            organizationId: AUDIOM_DIRECT.organizationId,
+            frontendUrl: AUDIOM_DIRECT.frontendUrl,
+            visibility: AudiomVisibility.ApiKey
+          })
+        : SourceBackend.devServer()
     });
     initialized = true;
   }

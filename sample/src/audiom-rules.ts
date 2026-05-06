@@ -28,12 +28,17 @@ export const POPULATION_RULES: AudiomRulesFile = {
       ],
       output: {
         ruleType: 'choropleth_region',
-        ruleName: [
+        // Audiom menu format is hardcoded `name (ruleName)`. We bake the
+        // statistic into `name` (so it shows in the click popup) and set
+        // `ruleName` to '' so the renderer drops the parenthesised suffix.
+        name: [
           'concat',
+          ['coalesce', ['get', 'name'], 'Unknown country'],
+          ', ',
           ['to-string', ['get', 'value']],
           ' million people'
         ],
-        name: ['coalesce', ['get', 'name'], 'Unknown country'],
+        ruleName: '',
         passable: true
       }
     },
@@ -42,8 +47,12 @@ export const POPULATION_RULES: AudiomRulesFile = {
       filter: ['==', ['get', 'ruleType'], 'choropleth_region'],
       output: {
         ruleType: 'choropleth_region',
-        ruleName: 'no population data',
-        name: ['coalesce', ['get', 'name'], 'Unknown country'],
+        name: [
+          'concat',
+          ['coalesce', ['get', 'name'], 'Unknown country'],
+          ' (no population data)'
+        ],
+        ruleName: '',
         passable: true
       }
     }
@@ -64,13 +73,15 @@ export const GDP_RULES: AudiomRulesFile = {
       ],
       output: {
         ruleType: 'choropleth_region',
-        ruleName: [
+        // Bake the stat into `name`; empty `ruleName` suppresses the suffix.
+        name: [
           'concat',
-          '$',
+          ['coalesce', ['get', 'name'], 'Unknown country'],
+          ', $',
           ['to-string', ['get', 'value']],
           ' GDP per capita'
         ],
-        name: ['coalesce', ['get', 'name'], 'Unknown country'],
+        ruleName: '',
         passable: true
       }
     },
@@ -79,8 +90,12 @@ export const GDP_RULES: AudiomRulesFile = {
       filter: ['==', ['get', 'ruleType'], 'choropleth_region'],
       output: {
         ruleType: 'choropleth_region',
-        ruleName: 'no GDP data',
-        name: ['coalesce', ['get', 'name'], 'Unknown country'],
+        name: [
+          'concat',
+          ['coalesce', ['get', 'name'], 'Unknown country'],
+          ' (no GDP data)'
+        ],
+        ruleName: '',
         passable: true
       }
     }

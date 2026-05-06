@@ -12,6 +12,7 @@ export {
 } from './s3';
 export { type DevServerBackendOptions } from './dev-server';
 export { type MemoryBackendHandle } from './memory';
+export { type AudiomBackendOptions, AudiomVisibility } from './audiom';
 
 import { inlineBackend } from './inline';
 import { staticBackend } from './static';
@@ -19,6 +20,7 @@ import { restBackend } from './rest';
 import { s3PresignedBackend } from './s3';
 import { devServerBackend } from './dev-server';
 import { memoryBackend } from './memory';
+import { audiomBackend } from './audiom';
 
 /**
  * Pluggable storage + serving for a chart's extracted GeoJSON.
@@ -56,5 +58,6 @@ export const SourceBackend = {
   rest: restBackend,
   s3Presigned: s3PresignedBackend,
   devServer: devServerBackend,
-  memory: memoryBackend
+  memory: memoryBackend,
+  audiom: audiomBackend
 } as const;

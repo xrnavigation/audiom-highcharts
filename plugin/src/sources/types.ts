@@ -50,7 +50,8 @@ export type BuiltinBackendName =
   | 'rest'
   | 's3-presigned'
   | 'dev-server'
-  | 'memory';
+  | 'memory'
+  | 'audiom';
 
 /**
  * Pluggable storage + serving for a chart's extracted GeoJSON.

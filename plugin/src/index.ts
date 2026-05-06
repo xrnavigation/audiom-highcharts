@@ -7,18 +7,21 @@ import {
   createPreviewButton,
   mountPreviewButtonAfter
 } from './ui/preview-button';
+import { uploadAudiomRules } from './rules/upload';
 
 export {
   init,
   /**
    * Both the **interface** (for typing custom backends) and the **static
    * factory namespace** for built-ins (`SourceBackend.memory()`,
-   * `.rest({...})`, `.s3Presigned({...})`, etc.).
+   * `.rest({...})`, `.s3Presigned({...})`, `.audiom({...})`, etc.).
    */
   SourceBackend,
   // Preview button (for hosts that build their own layout)
   createPreviewButton,
-  mountPreviewButtonAfter
+  mountPreviewButtonAfter,
+  // Direct-to-Audiom rules upload (POST /rulesets + /rules + /augmenters)
+  uploadAudiomRules
 };
 
 export type {
@@ -30,8 +33,19 @@ export type {
   S3PresignedBackendOptions,
   PresignedPut,
   DevServerBackendOptions,
-  MemoryBackendHandle
+  MemoryBackendHandle,
+  AudiomBackendOptions
 } from './sources';
+export { AudiomVisibility } from './sources';
+
+export type {
+  UploadAudiomRulesOptions,
+  UploadAudiomRulesResult,
+  AudiomRulesV2,
+  AudiomRuleRow,
+  AudiomAugmenterRow
+} from './rules/upload';
+export { AugmenterPosition } from './rules/upload';
 
 export type { PreviewButtonOptions, PreviewButtonHandle } from './ui/preview-button';
 
