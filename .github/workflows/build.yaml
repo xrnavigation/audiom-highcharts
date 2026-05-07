@@ -36,6 +36,11 @@ jobs:
           uploadTestResults: true
           testResultsFile: plugin/test-results.json
           uploadCoverage: true
+          # NB: input is `registries` (plural, newline-separated), not
+          # `registry` — the action silently ignores unknown inputs and
+          # then falls back to its default Gitea-style URL, which 401s on
+          # real github.com. Pin to the actual GitHub Packages npm host
+          # and pair it with GITHUB_TOKEN.
+          registries: https://npm.pkg.github.com
           apiKeys: ${{ secrets.GITHUB_TOKEN }}
-          registry: https://npm.pkg.github.com
           coverageDirectory: plugin/coverage
