@@ -21,6 +21,7 @@
 import type { Plugin, ViteDevServer, Connect } from 'vite';
 import { randomUUID } from 'node:crypto';
 import { resolveLogger, type AudiomLogger } from '../util/logger';
+import { MIME } from '../constants';
 
 export interface AudiomHighchartsDevOptions {
   /**
@@ -151,13 +152,13 @@ export function audiomHighchartsDev(
             const baseForUrl = publicBase ?? '';
             const responseUrl = `${baseForUrl}${prefix}/${id}.${ext}`;
             writeCors(req, res, allowOrigin);
-            res.setHeader('Content-Type', 'application/json');
+            res.setHeader('Content-Type', MIME.JSON);
             res.end(JSON.stringify({ url: responseUrl, id, ext }));
           })
           .catch((err: Error) => {
             writeCors(req, res, allowOrigin);
             res.statusCode = err.message === 'too-large' ? 413 : 400;
-            res.setHeader('Content-Type', 'text/plain');
+            res.setHeader('Content-Type', MIME.TEXT);
             res.end(`audiom-highcharts dev uploader: ${err.message}`);
           });
         return;
@@ -172,14 +173,14 @@ export function audiomHighchartsDev(
           if (!entry || entry.ext !== requestedExt) {
             writeCors(req, res, allowOrigin);
             res.statusCode = 404;
-            res.setHeader('Content-Type', 'text/plain');
+            res.setHeader('Content-Type', MIME.TEXT);
             res.end('audiom-highcharts dev uploader: not found');
             return;
           }
           writeCors(req, res, allowOrigin);
           res.setHeader(
             'Content-Type',
-            entry.ext === 'json' ? 'application/json' : 'application/geo+json'
+            entry.ext === 'json' ? MIME.JSON : MIME.GEO_JSON
           );
           res.setHeader('Cache-Control', 'no-store');
           if (req.method === 'HEAD') {

@@ -5,6 +5,7 @@ import type { FeatureCollection } from '../geo/types';
 import { extractGeoJSON } from '../extractors';
 import type { SourceBackend, AudiomSourceValue } from '../sources/types';
 import { getChartTitle } from '../util/chart';
+import { MIME, pluginError } from '../constants';
 
 /**
  * Outcome of source resolution. The plugin will hand `sources` to
@@ -39,8 +40,8 @@ export async function resolveSources(
   }
 
   if (!options.backend) {
-    throw new Error(
-      'audiom-highcharts: configure either `sources: [...]` (pre-baked URLs) ' +
+    throw pluginError(
+      'configure either `sources: [...]` (pre-baked URLs) ' +
         'or `backend: ...` (e.g. `inlineBackend()` for tiny demos, ' +
         '`devServerBackend()` for local dev, ' +
         '`restBackend({ endpoint })` or `s3PresignedBackend({ getPresignedPut })` ' +
@@ -56,7 +57,7 @@ export async function resolveSources(
   const ctx = {
     chartId: chart.index,
     chartTitle: getChartTitle(chart),
-    contentType: 'application/geo+json',
+    contentType: MIME.GEO_JSON,
     signal
   };
   const raw: AudiomSourceValue[] = await options.backend.put(collection, ctx);

@@ -10,3 +10,4 @@ vendor/
 .env.local
 coverage/
 .turbo/
+test-results.json

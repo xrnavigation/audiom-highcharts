@@ -2,6 +2,7 @@
  * Tiny iframe factory for hosting an Audiom embed URL.
  */
 import type { AudiomIframeOptions } from '../types';
+import { CSS_CLASSES } from '../ui/css-classes';
 
 /**
  * Default `allow` attribute. Audiom needs autoplay (audio playback),
@@ -38,7 +39,7 @@ export function createAudiomIframe(opts: CreateIframeOptions): HTMLIFrameElement
   const iframe = document.createElement('iframe');
   iframe.src = opts.url;
   iframe.title = opts.title;
-  iframe.className = ['audiom-hc-iframe', opts.className]
+  iframe.className = [CSS_CLASSES.IFRAME, opts.className]
     .filter(Boolean)
     .join(' ');
   iframe.setAttribute('loading', 'lazy');

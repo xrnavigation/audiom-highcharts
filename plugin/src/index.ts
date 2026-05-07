@@ -36,6 +36,18 @@ import {
   silentLogger,
   resolveLogger
 } from './util/logger';
+import {
+  ERROR_PREFIX,
+  pluginError,
+  MIME,
+  GEO_JSON_DATA_URI_PREFIX
+} from './constants';
+import {
+  CSS_CLASSES,
+  DOM_ID_PREFIX,
+  STYLE_ELEMENT_ID,
+  LayoutSide
+} from './ui/css-classes';
 
 export {
   init,
@@ -76,7 +88,16 @@ export {
   // Logging
   defaultLogger,
   silentLogger,
-  resolveLogger
+  resolveLogger,
+  // Constants
+  ERROR_PREFIX,
+  pluginError,
+  MIME,
+  GEO_JSON_DATA_URI_PREFIX,
+  CSS_CLASSES,
+  DOM_ID_PREFIX,
+  STYLE_ELEMENT_ID,
+  LayoutSide
 };
 
 export type {

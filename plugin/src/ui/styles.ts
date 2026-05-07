@@ -10,14 +10,13 @@
  * external CSS file to ship.
  */
 import css from './styles.css';
-
-const STYLE_ID = 'audiom-highcharts-styles';
+import { STYLE_ELEMENT_ID } from './css-classes';
 
 /** Inject the plugin stylesheet into the document once. */
 export function ensureStylesInjected(doc: Document = document): void {
-  if (doc.getElementById(STYLE_ID)) return;
+  if (doc.getElementById(STYLE_ELEMENT_ID)) return;
   const style = doc.createElement('style');
-  style.id = STYLE_ID;
+  style.id = STYLE_ELEMENT_ID;
   style.textContent = css;
   doc.head.appendChild(style);
 }

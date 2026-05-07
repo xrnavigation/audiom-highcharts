@@ -14,6 +14,7 @@
 import type { FeatureCollection } from '../geo/types';
 import type { SourceBackend, SourcePutContext, AudiomSourceValue } from './types';
 import { resolveFetch, httpError } from './_http';
+import { pluginError } from '../constants';
 
 export interface PresignedPut {
   /** PUT this URL with the JSON body. */
@@ -38,8 +39,8 @@ export function s3PresignedBackend(
   options: S3PresignedBackendOptions
 ): SourceBackend {
   if (typeof options?.getPresignedPut !== 'function') {
-    throw new Error(
-      'audiom-highcharts: s3PresignedBackend requires a `getPresignedPut` callback.'
+    throw pluginError(
+      's3PresignedBackend requires a `getPresignedPut` callback.'
     );
   }
   const fetchImpl = resolveFetch(options.fetchImpl, 's3PresignedBackend');

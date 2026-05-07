@@ -7,6 +7,7 @@
  * Audiom embed origin on the bucket.
  */
 import type { SourceBackend, AudiomSourceValue } from './types';
+import { pluginError } from '../constants';
 
 /**
  * Always returns the supplied sources, regardless of what the chart
@@ -15,7 +16,7 @@ import type { SourceBackend, AudiomSourceValue } from './types';
  */
 export function staticBackend(sources: AudiomSourceValue[]): SourceBackend {
   if (!Array.isArray(sources) || sources.length === 0) {
-    throw new Error('audiom-highcharts: staticBackend requires at least one source URL.');
+    throw pluginError('staticBackend requires at least one source URL.');
   }
   const frozen = sources.slice();
   return {

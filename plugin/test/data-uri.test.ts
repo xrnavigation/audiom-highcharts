@@ -1,8 +1,9 @@
 import { describe, it, expect } from 'vitest';
 import { geojsonToDataUri } from '../src/embed/data-uri';
+import { GEO_JSON_DATA_URI_PREFIX } from '../src/constants';
 import type { FeatureCollection } from '../src/geo/types';
 
-const PREFIX = 'data:application/geo+json;base64,';
+const PREFIX = GEO_JSON_DATA_URI_PREFIX;
 
 function decodeDataUri(uri: string): unknown {
   expect(uri.startsWith(PREFIX)).toBe(true);

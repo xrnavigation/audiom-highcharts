@@ -8,6 +8,7 @@
  */
 import type { AudiomSourceValue } from '../sources/types';
 import { ensureStylesInjected } from './styles';
+import { CSS_CLASSES } from './css-classes';
 
 export interface SourceLinksOptions {
   /** First-source-of-truth URL the embed will fetch. */
@@ -42,7 +43,7 @@ export function firstSourceUrl(sources: AudiomSourceValue[]): string | null {
 export function createSourceLinks(opts: SourceLinksOptions): SourceLinksHandle {
   ensureStylesInjected();
   const bar = document.createElement('div');
-  bar.className = 'audiom-hc-source-links';
+  bar.className = CSS_CLASSES.SOURCE_LINKS;
 
   bar.appendChild(
     anchor(opts.geojsonUrl, opts.geojsonLabel ?? 'View GeoJSON')
@@ -70,7 +71,7 @@ export function mountSourceLinksAfter(
 ): SourceLinksHandle {
   const handle = createSourceLinks(opts);
   const existing = container.parentElement?.querySelector<HTMLElement>(
-    ':scope > .audiom-hc-source-links'
+    `:scope > .${CSS_CLASSES.SOURCE_LINKS}`
   );
   if (existing) existing.remove();
   container.parentElement?.insertBefore(handle.element, container);

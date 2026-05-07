@@ -21,6 +21,7 @@
 import type { FeatureCollection } from '../geo/types';
 import type { SourceBackend, SourcePutContext, AudiomSourceValue } from './types';
 import { resolveFetch, httpError } from './_http';
+import { MIME, pluginError } from '../constants';
 
 export interface RestBackendOptions {
   /** Absolute or page-relative URL of the upload endpoint. */
@@ -43,7 +44,7 @@ export interface RestBackendOptions {
 
 export function restBackend(options: RestBackendOptions): SourceBackend {
   if (!options?.endpoint) {
-    throw new Error('audiom-highcharts: restBackend requires an `endpoint` URL.');
+    throw pluginError('restBackend requires an `endpoint` URL.');
   }
   const fetchImpl = resolveFetch(options.fetchImpl, 'restBackend');
   const parse = options.parseResponse ?? defaultParse;
@@ -57,7 +58,7 @@ export function restBackend(options: RestBackendOptions): SourceBackend {
       const res = await fetchImpl(options.endpoint, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': MIME.JSON,
           ...(options.headers ?? {})
         },
         body: JSON.stringify(collection),
@@ -70,9 +71,7 @@ export function restBackend(options: RestBackendOptions): SourceBackend {
       const body = (await res.json()) as unknown;
       const out = parse(body);
       if (!out.length) {
-        throw new Error(
-          'audiom-highcharts: restBackend response did not include any URLs.'
-        );
+        throw pluginError('restBackend response did not include any URLs.');
       }
       // Resolve relative URLs against the page origin so a cross-origin
       // Audiom iframe can fetch them.

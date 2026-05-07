@@ -1,4 +1,5 @@
 import type { FeatureCollection } from '../geo/types';
+import { GEO_JSON_DATA_URI_PREFIX, pluginError } from '../constants';
 
 /**
  * Encode an extracted GeoJSON FeatureCollection as a `data:` URI suitable for
@@ -12,7 +13,7 @@ import type { FeatureCollection } from '../geo/types';
  */
 export function geojsonToDataUri(collection: FeatureCollection): string {
   const json = JSON.stringify(collection);
-  return `data:application/geo+json;base64,${base64EncodeUtf8(json)}`;
+  return `${GEO_JSON_DATA_URI_PREFIX}${base64EncodeUtf8(json)}`;
 }
 
 function base64EncodeUtf8(input: string): string {
@@ -35,5 +36,5 @@ function base64EncodeUtf8(input: string): string {
   if (BufferRef) {
     return BufferRef.from(input, 'utf-8').toString('base64');
   }
-  throw new Error('audiom-highcharts: no base64 encoder available in this environment.');
+  throw pluginError('no base64 encoder available in this environment.');
 }

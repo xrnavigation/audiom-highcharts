@@ -14,6 +14,7 @@
  */
 import type { FeatureCollection } from '../geo/types';
 import type { SourceBackend, AudiomSourceValue } from './types';
+import { MIME, pluginError } from '../constants';
 
 export interface MemoryBackendHandle extends SourceBackend {
   /** Number of objects currently held. */
@@ -29,12 +30,12 @@ export function memoryBackend(): MemoryBackendHandle {
     get size() { return urls.length; },
     async put(collection: FeatureCollection): Promise<AudiomSourceValue[]> {
       if (typeof URL === 'undefined' || typeof Blob === 'undefined') {
-        throw new Error(
-          'audiom-highcharts: memoryBackend requires Blob + URL APIs (browser only).'
+        throw pluginError(
+          'memoryBackend requires Blob + URL APIs (browser only).'
         );
       }
       const blob = new Blob([JSON.stringify(collection)], {
-        type: 'application/geo+json'
+        type: MIME.GEO_JSON
       });
       const url = URL.createObjectURL(blob);
       urls.push(url);

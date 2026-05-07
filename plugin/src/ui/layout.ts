@@ -11,7 +11,9 @@
 import type Highcharts from 'highcharts';
 import { AudiomDisplayMode } from '../types';
 import { ensureStylesInjected } from './styles';
+import { CSS_CLASSES, DOM_ID_PREFIX, LayoutSide } from './css-classes';
 import { chartRenderTo } from '../util/chart';
+import { pluginError } from '../constants';
 
 export interface MountLayoutOptions {
   mode: AudiomDisplayMode.Tabbed | AudiomDisplayMode.SideBySide;
@@ -55,14 +57,12 @@ export function mountLayout(
   const originalParent = renderTo.parentNode;
   const originalNextSibling = renderTo.nextSibling;
   if (!originalParent) {
-    throw new Error(
-      '[audiom-highcharts] chart.renderTo has no parent; cannot mount layout.'
-    );
+    throw pluginError('chart.renderTo has no parent; cannot mount layout.');
   }
 
   const doc = renderTo.ownerDocument;
   const root = doc.createElement('div');
-  root.className = 'audiom-hc-root';
+  root.className = CSS_CLASSES.ROOT;
   root.dataset.mode = opts.mode;
 
   // Inherit the chart container's dimensions so we don't collapse the page
@@ -75,7 +75,7 @@ export function mountLayout(
   }
 
   const chartSlot = doc.createElement('div');
-  chartSlot.className = 'audiom-hc-chart-slot';
+  chartSlot.className = CSS_CLASSES.CHART_SLOT;
 
   // Move the chart's renderTo element into the slot. Stretch it so the
   // chart fills the slot without changing user CSS.
@@ -87,21 +87,21 @@ export function mountLayout(
 
   const audiomElement = opts.audiomElement;
 
-  let setActiveTab: (which: 'chart' | 'audiom') => void = () => {};
+  let setActiveTab: (which: LayoutSide) => void = () => {};
 
   if (opts.mode === AudiomDisplayMode.Tabbed) {
-    const chartTabId = `audiom-hc-tab-chart-${chart.index}`;
-    const audiomTabId = `audiom-hc-tab-audiom-${chart.index}`;
-    const chartPanelId = `audiom-hc-panel-chart-${chart.index}`;
-    const audiomPanelId = `audiom-hc-panel-audiom-${chart.index}`;
+    const chartTabId = `${DOM_ID_PREFIX.TAB_CHART}${chart.index}`;
+    const audiomTabId = `${DOM_ID_PREFIX.TAB_AUDIOM}${chart.index}`;
+    const chartPanelId = `${DOM_ID_PREFIX.PANEL_CHART}${chart.index}`;
+    const audiomPanelId = `${DOM_ID_PREFIX.PANEL_AUDIOM}${chart.index}`;
 
     const tablist = doc.createElement('div');
-    tablist.className = 'audiom-hc-tablist';
+    tablist.className = CSS_CLASSES.TABLIST;
     tablist.setAttribute('role', 'tablist');
 
     const chartTab = doc.createElement('button');
     chartTab.type = 'button';
-    chartTab.className = 'audiom-hc-tab';
+    chartTab.className = CSS_CLASSES.TAB;
     chartTab.id = chartTabId;
     chartTab.setAttribute('role', 'tab');
     chartTab.setAttribute('aria-controls', chartPanelId);
@@ -109,7 +109,7 @@ export function mountLayout(
 
     const audiomTab = doc.createElement('button');
     audiomTab.type = 'button';
-    audiomTab.className = 'audiom-hc-tab';
+    audiomTab.className = CSS_CLASSES.TAB;
     audiomTab.id = audiomTabId;
     audiomTab.setAttribute('role', 'tab');
     audiomTab.setAttribute('aria-controls', audiomPanelId);
@@ -119,21 +119,21 @@ export function mountLayout(
     tablist.appendChild(audiomTab);
 
     const chartPanel = doc.createElement('div');
-    chartPanel.className = 'audiom-hc-panel';
+    chartPanel.className = CSS_CLASSES.PANEL;
     chartPanel.id = chartPanelId;
     chartPanel.setAttribute('role', 'tabpanel');
     chartPanel.setAttribute('aria-labelledby', chartTabId);
     chartPanel.appendChild(chartSlot);
 
     const audiomPanel = doc.createElement('div');
-    audiomPanel.className = 'audiom-hc-panel';
+    audiomPanel.className = CSS_CLASSES.PANEL;
     audiomPanel.id = audiomPanelId;
     audiomPanel.setAttribute('role', 'tabpanel');
     audiomPanel.setAttribute('aria-labelledby', audiomTabId);
     audiomPanel.appendChild(audiomElement);
 
     setActiveTab = (which) => {
-      const chartActive = which === 'chart';
+      const chartActive = which === LayoutSide.Chart;
       chartTab.setAttribute('aria-selected', String(chartActive));
       audiomTab.setAttribute('aria-selected', String(!chartActive));
       chartTab.setAttribute('tabindex', chartActive ? '0' : '-1');
@@ -143,24 +143,24 @@ export function mountLayout(
       if (chartActive) opts.onChartShown?.();
     };
 
-    chartTab.addEventListener('click', () => setActiveTab('chart'));
-    audiomTab.addEventListener('click', () => setActiveTab('audiom'));
+    chartTab.addEventListener('click', () => setActiveTab(LayoutSide.Chart));
+    audiomTab.addEventListener('click', () => setActiveTab(LayoutSide.Audiom));
 
     const onKeydown = (ev: KeyboardEvent) => {
       if (ev.key === 'ArrowRight') {
-        setActiveTab('audiom');
+        setActiveTab(LayoutSide.Audiom);
         audiomTab.focus();
         ev.preventDefault();
       } else if (ev.key === 'ArrowLeft') {
-        setActiveTab('chart');
+        setActiveTab(LayoutSide.Chart);
         chartTab.focus();
         ev.preventDefault();
       } else if (ev.key === 'Home') {
-        setActiveTab('chart');
+        setActiveTab(LayoutSide.Chart);
         chartTab.focus();
         ev.preventDefault();
       } else if (ev.key === 'End') {
-        setActiveTab('audiom');
+        setActiveTab(LayoutSide.Audiom);
         audiomTab.focus();
         ev.preventDefault();
       }
@@ -172,16 +172,16 @@ export function mountLayout(
     root.appendChild(chartPanel);
     root.appendChild(audiomPanel);
 
-    setActiveTab('chart');
+    setActiveTab(LayoutSide.Chart);
   } else {
     // Side-by-side: two flex panes, both visible.
     const chartPane = doc.createElement('div');
-    chartPane.className = 'audiom-hc-pane audiom-hc-pane-chart';
+    chartPane.className = `${CSS_CLASSES.PANE} ${CSS_CLASSES.PANE_CHART}`;
     chartPane.setAttribute('aria-label', opts.chartLabel);
     chartPane.appendChild(chartSlot);
 
     const audiomPane = doc.createElement('div');
-    audiomPane.className = 'audiom-hc-pane audiom-hc-pane-audiom';
+    audiomPane.className = `${CSS_CLASSES.PANE} ${CSS_CLASSES.PANE_AUDIOM}`;
     audiomPane.setAttribute('aria-label', opts.audiomLabel);
     audiomPane.appendChild(audiomElement);
 
@@ -200,8 +200,8 @@ export function mountLayout(
 
   return {
     root,
-    showChart() { setActiveTab('chart'); },
-    showAudiom() { setActiveTab('audiom'); },
+    showChart() { setActiveTab(LayoutSide.Chart); },
+    showAudiom() { setActiveTab(LayoutSide.Audiom); },
     destroy() {
       // Restore the chart container to its original position.
       renderTo.style.width = prevWidth;

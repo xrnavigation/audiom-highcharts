@@ -20,6 +20,7 @@ import {
   type PreviewButtonHandle
 } from './ui/preview-button';
 import { ensureStylesInjected } from './ui/styles';
+import { CSS_CLASSES } from './ui/css-classes';
 import { chartRenderTo, getChartTitle } from './util/chart';
 import { resolveLogger, type AudiomLogger } from './util/logger';
 import { hasExtractor } from './extractors';
@@ -184,7 +185,7 @@ function presentEmbed(
   let audiomElement: HTMLElement = iframe;
   if (options.showOpenInTabButton) {
     const wrapper = document.createElement('div');
-    wrapper.className = 'audiom-hc-iframe-with-button';
+    wrapper.className = CSS_CLASSES.IFRAME_WITH_BUTTON;
     const btn = createPreviewButton({
       url: result.url,
       label: options.openInTabLabel,

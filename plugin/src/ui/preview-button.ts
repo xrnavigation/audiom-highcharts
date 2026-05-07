@@ -15,6 +15,7 @@
  */
 
 import { ensureStylesInjected } from './styles';
+import { CSS_CLASSES } from './css-classes';
 
 export interface PreviewButtonOptions {
   url: string;
@@ -41,10 +42,10 @@ export function createPreviewButton(opts: PreviewButtonOptions): PreviewButtonHa
   ensureStylesInjected(doc);
 
   const bar = doc.createElement('div');
-  bar.className = 'audiom-hc-preview-bar';
+  bar.className = CSS_CLASSES.PREVIEW_BAR;
 
   const a = doc.createElement('a');
-  a.className = 'audiom-hc-preview-button';
+  a.className = CSS_CLASSES.PREVIEW_BUTTON;
   a.href = opts.url;
   a.target = opts.target ?? '_blank';
   a.rel = 'noopener noreferrer';
