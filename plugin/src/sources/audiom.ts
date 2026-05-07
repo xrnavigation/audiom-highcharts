@@ -8,43 +8,23 @@
  * my own" use: hosts only need an Audiom API key + organization id and
  * GeoJSON + rules go straight into the same Audiom they're embedding.
  *
+ * The `@xrnavigation/audiom-api-client` dependency is loaded lazily so
+ * hosts using only `restBackend`/`s3PresignedBackend`/etc. don't pay the
+ * bundle cost.
+ *
  * See upload-api/api-spec.md §6 for the full datasources contract.
  */
-import { AudiomClient } from '@xrnavigation/audiom-api-client';
+import type { AudiomClient } from '@xrnavigation/audiom-api-client';
+import {
+  resolveAudiomClient,
+  readBaseUrl,
+  resolveOrganizationId,
+  type AudiomCredentialsOptions
+} from '../audiom/client';
 import type { FeatureCollection } from '../geo/types';
 import type { SourceBackend, SourcePutContext, AudiomSourceValue } from './types';
 
-export interface AudiomBackendOptions {
-  /**
-   * Audiom REST base URL (no trailing slash). Example:
-   * `https://api.audiom.app`. Pass either this OR a pre-built `client`.
-   */
-  apiUrl?: string;
-  /**
-   * Pre-configured `AudiomClient`. When provided, `apiUrl`/`apiKey` are
-   * ignored — useful when the host already maintains a logged-in client.
-   */
-  client?: AudiomClient;
-  /**
-   * Audiom organization-scoped API key with `datasources:write` scope.
-   * Required when `client` is not provided.
-   */
-  apiKey?: string;
-  /**
-   * Caller's organization id. Optional — when omitted, the backend
-   * resolves it from the authenticated identity (`GET /users/me`) on
-   * the first upload and caches the result. Pass this only when the
-   * caller has access to multiple organizations and needs to target a
-   * specific one.
-   */
-  organizationId?: number;
-  /**
-   * Frontend base URL used to construct the *read* URL Audiom fetches.
-   * Defaults to `apiUrl` (or `client.http.getBaseUrl()`). Example:
-   * `https://app.audiom.app` (when frontend is on a different host than
-   * the API). The read URL is `<frontendUrl>/api/datasources/<id>.json`.
-   */
-  frontendUrl?: string;
+export interface AudiomBackendOptions extends AudiomCredentialsOptions {
   /**
    * Display name for the new datasource row. Defaults to the chart title
    * (or `"Highcharts chart <id>"` when no title is set). Use a function
@@ -55,18 +35,39 @@ export interface AudiomBackendOptions {
   sourceAttribution?: string;
 }
 
+/** Default datasource label when neither `options.name` nor `chartTitle` is set. */
+const defaultName = (ctx: SourcePutContext): string =>
+  ctx.chartTitle ?? `Highcharts chart ${String(ctx.chartId)}`;
+
+/** Collapse the `string | function | undefined` option to a single resolver. */
+function nameResolver(
+  opt: AudiomBackendOptions['name']
+): (ctx: SourcePutContext) => string {
+  if (typeof opt === 'function') return opt;
+  if (typeof opt === 'string') return () => opt;
+  return defaultName;
+}
+
 export function audiomBackend(options: AudiomBackendOptions): SourceBackend {
-  const client = resolveClient(options);
-  const readBase = trimTrailingSlash(
-    options.frontendUrl ?? options.apiUrl ?? client.http.getBaseUrl()
-  );
-  // Lazy: resolved on the first upload via /users/me unless the caller
-  // provided an explicit organizationId.
-  let resolvedOrgId: number | undefined = Number.isFinite(
-    options.organizationId
-  )
-    ? (options.organizationId as number)
-    : undefined;
+  // Lazy state: the client and read base URL are resolved on the first
+  // upload so module-load stays cheap and hosts that never trigger an
+  // upload don't pull `@xrnavigation/audiom-api-client` into their bundle.
+  let clientPromise: Promise<AudiomClient> | null = null;
+  let readBase: string | null = null;
+  let resolvedOrgId: number | undefined;
+  const resolveName = nameResolver(options.name);
+
+  async function ensureClient(): Promise<AudiomClient> {
+    if (!clientPromise) {
+      clientPromise = resolveAudiomClient(options, 'audiomBackend').then(
+        (c) => {
+          readBase = readBaseUrl(options, c);
+          return c;
+        }
+      );
+    }
+    return clientPromise;
+  }
 
   return {
     name: 'audiom',
@@ -74,16 +75,15 @@ export function audiomBackend(options: AudiomBackendOptions): SourceBackend {
       collection: FeatureCollection,
       ctx: SourcePutContext
     ): Promise<AudiomSourceValue[]> {
-      const name =
-        typeof options.name === 'function'
-          ? options.name(ctx)
-          : (options.name ??
-              ctx.chartTitle ??
-              `Highcharts chart ${String(ctx.chartId)}`);
+      const client = await ensureClient();
+      const name = resolveName(ctx);
 
-      if (resolvedOrgId === undefined) {
-        resolvedOrgId = await fetchOrganizationId(client);
-      }
+      resolvedOrgId = await resolveOrganizationId(
+        client,
+        resolvedOrgId ?? options.organizationId,
+        'audiomBackend'
+      );
+
       const row = await client.datasources.uploadGeoJson(
         collection as unknown as GeoJSON.FeatureCollection,
         {
@@ -93,41 +93,8 @@ export function audiomBackend(options: AudiomBackendOptions): SourceBackend {
         }
       );
       // §6.4: the frontend proxy unwraps the row and serves the raw
-      // GeoJSON with application/json. This is what Audiom should fetch.
+      // GeoJSON with application/json — what Audiom should fetch.
       return [`${readBase}/api/datasources/${row.id}.json`];
     }
   };
-}
-
-function resolveClient(options: AudiomBackendOptions): AudiomClient {
-  if (options.client) return options.client;
-  if (!options.apiUrl) {
-    throw new Error(
-      'audiom-highcharts: audiomBackend requires either `client` or `apiUrl`.'
-    );
-  }
-  if (!options.apiKey) {
-    throw new Error(
-      'audiom-highcharts: audiomBackend requires `apiKey` when `client` is not provided.'
-    );
-  }
-  return new AudiomClient({
-    baseUrl: options.apiUrl,
-    apiKey: options.apiKey
-  });
-}
-
-async function fetchOrganizationId(client: AudiomClient): Promise<number> {
-  const user = await client.users.me();
-  if (!Number.isFinite(user?.organizationId)) {
-    throw new Error(
-      'audiom-highcharts: GET /users/me returned no organizationId. ' +
-        'Pass `organizationId` explicitly to audiomBackend(...).'
-    );
-  }
-  return user.organizationId;
-}
-
-function trimTrailingSlash(s: string): string {
-  return s.replace(/\/+$/, '');
 }

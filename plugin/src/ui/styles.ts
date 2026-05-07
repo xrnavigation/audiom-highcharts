@@ -119,6 +119,30 @@ const CSS = `
   justify-content: flex-end;
   padding: 0.5rem 0;
 }
+
+/* Wrapper for iframe + preview-button stacked vertically inside an
+ * Audiom panel/pane. Replaces inline styles previously applied in
+ * plugin.ts. */
+.audiom-hc-iframe-with-button {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+}
+.audiom-hc-iframe-with-button > .audiom-hc-iframe {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+/* "View source URLs" link bar (geojson + rules anchors). Mounted via
+ * mountSourceLinksAfter() above the chart container. */
+.audiom-hc-source-links {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin: 0.5rem 0 0.75rem;
+  font-size: 0.9rem;
+}
 .audiom-hc-preview-button {
   display: inline-block;
   padding: 0.5rem 1rem;

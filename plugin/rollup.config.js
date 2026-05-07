@@ -21,21 +21,6 @@ export default [
         format: 'es',
         sourcemap: true,
         exports: 'named'
-      },
-      {
-        file: 'dist/audiom-highcharts.umd.cjs',
-        format: 'umd',
-        name: 'AudiomHighcharts',
-        sourcemap: true,
-        exports: 'named',
-        globals: {
-          highcharts: 'Highcharts',
-          '@xrnavigation/audiom-embedder': 'AudiomEmbedder',
-          '@xrnavigation/audiom-api-client': 'AudiomApiClient',
-          'topojson-client': 'topojson',
-          'topojson-server': 'topojsonServer',
-          'topojson-simplify': 'topojsonSimplify'
-        }
       }
     ],
     plugins: [

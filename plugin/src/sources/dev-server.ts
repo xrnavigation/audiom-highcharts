@@ -2,9 +2,7 @@
  * Dev-server backend — pairs with the `audiomHighchartsDev()` Vite plugin.
  *
  * Same wire format as {@link restBackend}, but defaults to the Vite
- * plugin's conventional `/__audiom__/upload` route. Kept as a separate
- * named factory because it's the canonical local-dev choice and makes
- * sample code self-documenting.
+ * plugin's conventional `/__audiom__/upload` route.
  */
 import { restBackend } from './rest';
 import type { SourceBackend } from './types';
@@ -18,16 +16,17 @@ export interface DevServerBackendOptions {
   endpoint?: string;
 }
 
-export function devServerBackend(options: DevServerBackendOptions = {}): SourceBackend {
+const DEFAULT_PATH = '/__audiom__/upload';
+
+export function devServerBackend(
+  options: DevServerBackendOptions = {}
+): SourceBackend {
   const endpoint = options.endpoint ?? defaultEndpoint();
   const inner = restBackend({ endpoint });
-  return {
-    name: 'dev-server',
-    put: inner.put
-  };
+  return { name: 'dev-server', put: inner.put };
 }
 
 function defaultEndpoint(): string {
-  if (typeof window === 'undefined') return '/__audiom__/upload';
-  return new URL('/__audiom__/upload', window.location.href).href;
+  if (typeof window === 'undefined') return DEFAULT_PATH;
+  return new URL(DEFAULT_PATH, window.location.href).href;
 }

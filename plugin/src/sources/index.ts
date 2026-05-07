@@ -1,7 +1,13 @@
+/**
+ * Public surface for the source-backend system.
+ *
+ * Exports both the **`SourceBackend` interface** (for typing custom
+ * backends) and the **`SourceBackend` factory namespace** (for the
+ * built-ins) using TypeScript declaration merging.
+ */
 export type {
   SourcePutContext,
-  AudiomSourceValue,
-  BuiltinBackendName
+  AudiomSourceValue
 } from './types';
 import type { SourceBackend as ISourceBackend } from './types';
 export { type InlineBackendOptions } from './inline';
@@ -25,10 +31,11 @@ import { audiomBackend } from './audiom';
 /**
  * Pluggable storage + serving for a chart's extracted GeoJSON.
  *
- * Identical shape to the internal interface; re-declared here so the
- * **type** and the **static factory namespace** below can share one name
- * (`SourceBackend`) via TypeScript declaration merging.
+ * Re-declared here (extending the internal interface verbatim) so the
+ * **type** and the static factory **namespace** below can share one
+ * name (`SourceBackend`) via TypeScript declaration merging.
  */
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface SourceBackend extends ISourceBackend {}
 
 /**
@@ -61,3 +68,33 @@ export const SourceBackend = {
   memory: memoryBackend,
   audiom: audiomBackend
 } as const;
+
+/**
+ * Names of the built-in backends. Custom user backends may use any string.
+ *
+ * The compile-time assertion below ties this union to the factory
+ * namespace keys so adding (or removing) a built-in here without
+ * updating `SourceBackend` (or vice versa) becomes a type error.
+ */
+export type BuiltinBackendName =
+  | 'inline'
+  | 'static'
+  | 'rest'
+  | 's3-presigned'
+  | 'dev-server'
+  | 'memory'
+  | 'audiom';
+
+// Map kebab-case `name` strings to the camelCase factory keys so the two
+// can never drift silently. Renaming a built-in requires updating both.
+type FactoryKeyForName<N extends BuiltinBackendName> = N extends 's3-presigned'
+  ? 's3Presigned'
+  : N extends 'dev-server'
+    ? 'devServer'
+    : N;
+type _AssertBackendNames =
+  Exclude<BuiltinBackendName, FactoryKeyForName<BuiltinBackendName> extends keyof typeof SourceBackend ? BuiltinBackendName : never> extends never
+    ? true
+    : ['BuiltinBackendName / SourceBackend factory keys are out of sync'];
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const _assertBackendNames: _AssertBackendNames = true;

@@ -1,4 +1,4 @@
-import { AudiomDisplayMode } from 'audiom-highcharts';
+import { AudiomDisplayMode } from '@xrnavigation/audiom-highcharts';
 
 /**
  * Read the `?mode=tabbed|side-by-side` query param and render a small

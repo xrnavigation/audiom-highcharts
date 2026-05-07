@@ -11,6 +11,7 @@
 import type Highcharts from 'highcharts';
 import { AudiomDisplayMode } from '../types';
 import { ensureStylesInjected } from './styles';
+import { chartRenderTo } from '../util/chart';
 
 export interface MountLayoutOptions {
   mode: AudiomDisplayMode.Tabbed | AudiomDisplayMode.SideBySide;
@@ -47,9 +48,8 @@ export function mountLayout(
   chart: Highcharts.Chart,
   opts: MountLayoutOptions
 ): LayoutHandle {
-  // `renderTo` is the user-supplied container element. It exists at runtime
-  // on every Chart but isn't on the public type.
-  const renderTo = (chart as unknown as { renderTo: HTMLElement }).renderTo;
+  // `renderTo` is the user-supplied container element.
+  const renderTo = chartRenderTo(chart);
   ensureStylesInjected(renderTo.ownerDocument);
 
   const originalParent = renderTo.parentNode;

@@ -6,7 +6,7 @@
  * Each kind is uploaded at most once per page load (results memoized in a
  * Promise-keyed Map).
  */
-import { uploadAudiomRules, RulesetVisibility } from 'audiom-highcharts';
+import { uploadAudiomRules, RulesetVisibility } from '@xrnavigation/audiom-highcharts';
 import { POPULATION_RULES, GDP_RULES } from './audiom-rules';
 import type { AudiomRulesFile } from './audiom-rules-types';
 import { AUDIOM_DIRECT, type AudiomDirectConfig } from './audiom-direct-config';

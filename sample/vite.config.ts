@@ -1,6 +1,6 @@
 import { resolve } from 'node:path';
 import { defineConfig } from 'vite';
-import { audiomHighchartsDev } from 'audiom-highcharts/vite';
+import { audiomHighchartsDev } from '@xrnavigation/audiom-highcharts/vite';
 
 // ----------------------------------------------------------------------------
 // Cross-origin GeoJSON for the Audiom iframe

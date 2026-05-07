@@ -42,18 +42,6 @@ export interface SourcePutContext {
 export type AudiomSourceValue = IAudiomSource | string;
 
 /**
- * Names of the built-in backends. Custom user backends may use any string.
- */
-export type BuiltinBackendName =
-  | 'inline'
-  | 'static'
-  | 'rest'
-  | 's3-presigned'
-  | 'dev-server'
-  | 'memory'
-  | 'audiom';
-
-/**
  * Pluggable storage + serving for a chart's extracted GeoJSON.
  *
  * Implementations are responsible for: persisting the bytes (if needed),
@@ -63,10 +51,11 @@ export type BuiltinBackendName =
  */
 export interface SourceBackend {
   /**
-   * Discriminator for logs / errors. Built-in backends use one of
-   * {@link BuiltinBackendName}; custom backends may use any string.
+   * Discriminator for logs / errors. Built-in backends use one of the
+   * names exported as `BuiltinBackendName` from
+   * `audiom-highcharts/sources`; custom backends may use any string.
    */
-  readonly name: BuiltinBackendName | (string & {});
+  readonly name: string;
   /**
    * Persist the FeatureCollection and return values suitable for
    * `AudiomEmbedConfig.dynamic({ sources })`.

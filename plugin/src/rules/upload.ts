@@ -6,37 +6,24 @@
  * the Audiom embed should fetch (`<frontendUrl>/api/rules/<slug>.json`)
  * — i.e. the value to assign to `AudiomPluginOptions.rules`.
  *
+ * The `@xrnavigation/audiom-api-client` dependency is loaded lazily so
+ * hosts that never call this helper don't pay the bundle cost.
+ *
  * See upload-api/api-spec.md §5 for the full contract.
  */
-import {
-  AudiomClient,
+import type {
+  MapboxRuleSet,
   RulesetVisibility,
-  type MapboxRuleSet,
-  type UploadRulesetResult
+  UploadRulesetResult
 } from '@xrnavigation/audiom-api-client';
+import {
+  resolveAudiomClient,
+  readBaseUrl,
+  resolveOrganizationId,
+  type AudiomCredentialsOptions
+} from '../audiom/client';
 
-export interface UploadAudiomRulesOptions {
-  /** Audiom REST base URL (no trailing slash). Pass either this OR a `client`. */
-  apiUrl?: string;
-  /**
-   * Pre-configured `AudiomClient`. When provided, `apiUrl`/`apiKey` are
-   * ignored.
-   */
-  client?: AudiomClient;
-  /** API key with `rulesets:write` and `rules:write` scopes. */
-  apiKey?: string;
-  /**
-   * Caller's organization id. Optional — when omitted, derived from
-   * the authenticated identity (`GET /users/me`). Pass this only when
-   * the caller has access to multiple organizations.
-   */
-  organizationId?: number;
-  /**
-   * Frontend base URL for constructing the read URL Audiom fetches.
-   * Defaults to `apiUrl` (or `client.http.getBaseUrl()`). Read URL:
-   * `<frontendUrl>/api/rules/<slug>.json`.
-   */
-  frontendUrl?: string;
+export interface UploadAudiomRulesOptions extends AudiomCredentialsOptions {
   /** URL-safe slug, unique per organization. */
   slug: string;
   /** Display name. Defaults to slug. */
@@ -76,14 +63,13 @@ export async function uploadAudiomRules(
     );
   }
 
-  const client = resolveClient(options);
-  const readBase = trimTrailingSlash(
-    options.frontendUrl ?? options.apiUrl ?? client.http.getBaseUrl()
+  const client = await resolveAudiomClient(options, 'uploadAudiomRules');
+  const readBase = readBaseUrl(options, client);
+  const organizationId = await resolveOrganizationId(
+    client,
+    options.organizationId,
+    'uploadAudiomRules'
   );
-
-  const organizationId = Number.isFinite(options.organizationId)
-    ? (options.organizationId as number)
-    : await fetchOrganizationId(client);
 
   const result = await client.rulesets.uploadFile(options.rules, {
     slug: options.slug,
@@ -98,37 +84,4 @@ export async function uploadAudiomRules(
     ...result,
     rulesUrl: `${readBase}/api/rules/${encodeURIComponent(result.ruleset.slug)}.json`
   };
-}
-
-function resolveClient(options: UploadAudiomRulesOptions): AudiomClient {
-  if (options.client) return options.client;
-  if (!options.apiUrl) {
-    throw new Error(
-      'uploadAudiomRules: requires either `client` or `apiUrl`.'
-    );
-  }
-  if (!options.apiKey) {
-    throw new Error(
-      'uploadAudiomRules: requires `apiKey` when `client` is not provided.'
-    );
-  }
-  return new AudiomClient({
-    baseUrl: options.apiUrl,
-    apiKey: options.apiKey
-  });
-}
-
-async function fetchOrganizationId(client: AudiomClient): Promise<number> {
-  const user = await client.users.me();
-  if (!Number.isFinite(user?.organizationId)) {
-    throw new Error(
-      'uploadAudiomRules: GET /users/me returned no organizationId. ' +
-        'Pass `organizationId` explicitly.'
-    );
-  }
-  return user.organizationId;
-}
-
-function trimTrailingSlash(s: string): string {
-  return s.replace(/\/+$/, '');
 }

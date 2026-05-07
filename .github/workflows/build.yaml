@@ -1,0 +1,36 @@
+name: build
+
+on:
+  push:
+    branches:
+      - main
+      - master
+      - 'release/**'
+  pull_request:
+    branches:
+      - main
+      - master
+      - 'release/**'
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: ${{ vars.NODE_VERSION || '20' }}
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run tests via shared composite action
+        uses: StudioWhyNot/act/common/npm/npm-test@master
+        with:
+          nodeVersion: ${{ env.NODE_VERSION }}
+          testCommand: npm run test:coverage
+          uploadCoverage: true
+          apiKeys: ${{ secrets.GITHUB_TOKEN }}
+          registry: https://npm.pkg.github.com
+          workingDirectory: plugin

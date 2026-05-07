@@ -4,6 +4,7 @@ import type { AudiomPluginOptions } from '../types';
 import type { FeatureCollection } from '../geo/types';
 import { extractGeoJSON } from '../extractors';
 import type { SourceBackend, AudiomSourceValue } from '../sources/types';
+import { getChartTitle } from '../util/chart';
 
 /**
  * Outcome of source resolution. The plugin will hand `sources` to
@@ -24,10 +25,14 @@ export interface ResolvedSources {
  *   - `options.sources` supplied → forward verbatim, no extraction.
  *   - `options.backend` supplied → extract from the chart and `put()` it.
  *   - Neither                    → throw with guidance.
+ *
+ * `signal` (when supplied) is forwarded to `backend.put()` via the
+ * `SourcePutContext` so destroy-mid-upload can cancel the in-flight HTTP.
  */
 export async function resolveSources(
   chart: Highcharts.Chart,
-  options: AudiomPluginOptions
+  options: AudiomPluginOptions,
+  signal?: AbortSignal
 ): Promise<ResolvedSources> {
   if (options.sources?.length) {
     return { sources: options.sources, geojson: null };
@@ -50,16 +55,15 @@ export async function resolveSources(
 
   const ctx = {
     chartId: chart.index,
-    chartTitle:
-      (chart.title as unknown as { textStr?: string } | undefined)?.textStr ??
-      undefined,
-    contentType: 'application/geo+json'
+    chartTitle: getChartTitle(chart),
+    contentType: 'application/geo+json',
+    signal
   };
   const raw: AudiomSourceValue[] = await options.backend.put(collection, ctx);
   // When `options.rules` is set, wrap any string URLs into IAudiomSource
-  // objects so the embedder forwards `rules` per-source. Object entries are
-  // left alone — callers that hand back full IAudiomSource configs from a
-  // backend already control their own `rules` field.
+  // objects so the embedder forwards `rules` per-source. Object entries
+  // are left alone — callers that hand back full IAudiomSource configs
+  // from a backend already control their own `rules` field.
   const sources: AudiomSourceValue[] = options.rules
     ? raw.map((s) =>
         typeof s === 'string'

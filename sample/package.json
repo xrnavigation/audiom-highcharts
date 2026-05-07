@@ -9,7 +9,9 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "audiom-highcharts": "*",
+    "@xrnavigation/audiom-highcharts": "*",
+    "@xrnavigation/audiom-api-client": "^1.0.0",
+    "@xrnavigation/audiom-embedder": "^1.0.0",
     "highcharts": "^11.4.0"
   },
   "devDependencies": {

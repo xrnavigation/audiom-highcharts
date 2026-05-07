@@ -6,11 +6,26 @@
 import Highcharts from 'highcharts/highmaps';
 import AudiomPlugin, {
   SourceBackend
-} from 'audiom-highcharts';
+} from '@xrnavigation/audiom-highcharts';
 import { setupDisplayModeToggle } from './mode-toggle';
 import { AUDIOM_DIRECT } from './audiom-direct-config';
 
-const SHARED_API_KEY = 'wO35blaGsjJREGuXehqWU';
+// Sourced at build time from `VITE_AUDIOM_SHARED_API_KEY` (see
+// `sample/.env.example`). The bundled demo key is intentionally public —
+// rotate it on the Audiom side if abuse is detected — but it must be
+// provided through env to avoid hard-coding tokens into source.
+const SHARED_API_KEY =
+  (import.meta.env as Record<string, string | undefined>)
+    .VITE_AUDIOM_SHARED_API_KEY ?? '';
+
+if (!SHARED_API_KEY) {
+  // eslint-disable-next-line no-console
+  console.warn(
+    '[audiom-highcharts/sample] VITE_AUDIOM_SHARED_API_KEY is not set; ' +
+      'the embed will fall back to anonymous access. Copy ' +
+      'sample/.env.example to sample/.env.local and fill in the key.'
+  );
+}
 
 // Where the Audiom embed is hosted. Switch to 'http://localhost:3000' when
 // running Audiom locally — loopback ↔ loopback fetches are exempt from

@@ -1,6 +1,25 @@
 /**
  * Tiny iframe factory for hosting an Audiom embed URL.
  */
+import type { AudiomIframeOptions } from '../types';
+
+/**
+ * Default `allow` attribute. Audiom needs autoplay (audio playback),
+ * fullscreen (visual map), clipboard-write (copy-link buttons), and
+ * microphone (voice control). Hosts that don't want microphone access
+ * can pass `iframe: { allow: 'autoplay; fullscreen; clipboard-write' }`.
+ */
+export const DEFAULT_IFRAME_ALLOW =
+  'autoplay; fullscreen; clipboard-write; microphone';
+
+/**
+ * Default `sandbox` attribute. **`allow-same-origin` is only safe when
+ * the embed is served from a different origin than the host page** (the
+ * common case for Audiom). For same-origin embeds, narrow the sandbox
+ * via `iframe: { sandbox: '...' }`.
+ */
+export const DEFAULT_IFRAME_SANDBOX =
+  'allow-scripts allow-same-origin allow-forms allow-popups allow-downloads';
 
 export interface CreateIframeOptions {
   url: string;
@@ -8,12 +27,12 @@ export interface CreateIframeOptions {
   title: string;
   /** Optional className appended to the iframe. */
   className?: string;
+  /** Override `allow` / `sandbox`. See {@link AudiomIframeOptions}. */
+  iframe?: AudiomIframeOptions;
 }
 
 /**
- * Create an iframe configured for hosting an Audiom embed. The iframe is
- * deliberately permissive on `allow` attributes (audio playback, fullscreen,
- * autoplay) since Audiom needs them, and uses a strict-ish `sandbox`.
+ * Create an iframe configured for hosting an Audiom embed.
  */
 export function createAudiomIframe(opts: CreateIframeOptions): HTMLIFrameElement {
   const iframe = document.createElement('iframe');
@@ -23,13 +42,10 @@ export function createAudiomIframe(opts: CreateIframeOptions): HTMLIFrameElement
     .filter(Boolean)
     .join(' ');
   iframe.setAttribute('loading', 'lazy');
-  iframe.setAttribute(
-    'allow',
-    'autoplay; fullscreen; clipboard-write; microphone'
-  );
+  iframe.setAttribute('allow', opts.iframe?.allow ?? DEFAULT_IFRAME_ALLOW);
   iframe.setAttribute(
     'sandbox',
-    'allow-scripts allow-same-origin allow-forms allow-popups allow-downloads'
+    opts.iframe?.sandbox ?? DEFAULT_IFRAME_SANDBOX
   );
   return iframe;
 }

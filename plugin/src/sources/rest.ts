@@ -20,6 +20,7 @@
  */
 import type { FeatureCollection } from '../geo/types';
 import type { SourceBackend, SourcePutContext, AudiomSourceValue } from './types';
+import { resolveFetch, httpError } from './_http';
 
 export interface RestBackendOptions {
   /** Absolute or page-relative URL of the upload endpoint. */
@@ -44,7 +45,7 @@ export function restBackend(options: RestBackendOptions): SourceBackend {
   if (!options?.endpoint) {
     throw new Error('audiom-highcharts: restBackend requires an `endpoint` URL.');
   }
-  const fetchImpl = options.fetchImpl ?? globalThis.fetch;
+  const fetchImpl = resolveFetch(options.fetchImpl, 'restBackend');
   const parse = options.parseResponse ?? defaultParse;
 
   return {
@@ -64,9 +65,7 @@ export function restBackend(options: RestBackendOptions): SourceBackend {
         signal: ctx.signal
       });
       if (!res.ok) {
-        throw new Error(
-          `audiom-highcharts: restBackend POST ${options.endpoint} → ${res.status} ${res.statusText}`
-        );
+        throw await httpError('restBackend', 'POST', options.endpoint, res);
       }
       const body = (await res.json()) as unknown;
       const out = parse(body);

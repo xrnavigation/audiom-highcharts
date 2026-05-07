@@ -3,7 +3,7 @@
  * container. Lets the demo expose the URLs Audiom is fetching so they
  * can be inspected in a browser tab.
  */
-import type { AudiomSourceValue } from 'audiom-highcharts';
+import type { AudiomSourceValue } from '@xrnavigation/audiom-highcharts';
 
 /**
  * Pull the served GeoJSON URL out of a resolved sources list. Returns the

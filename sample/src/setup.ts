@@ -5,7 +5,7 @@
  * `plugin-init.ts`; rule-file upload routing lives in `rules-upload.ts`.
  */
 import Highcharts from 'highcharts/highmaps';
-import type { AudiomEmbedReadyInfo } from 'audiom-highcharts';
+import type { AudiomEmbedReadyInfo } from '@xrnavigation/audiom-highcharts';
 import { setupSample } from './plugin-init';
 import { uploadRules, type RulesKind } from './rules-upload';
 import { firstSourceUrl, mountViewGeoJSONLink } from './link-bar';

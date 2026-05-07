@@ -5,7 +5,11 @@ import {
   type IAudiomEmbedConfig,
   type IAudiomSource
 } from '@xrnavigation/audiom-embedder';
-import type { AudiomPluginOptions } from '../types';
+import {
+  PLUGIN_ONLY_KEYS,
+  type AudiomPluginOptions,
+  type PluginOnlyKey
+} from '../types';
 import { resolveSources } from './source-strategy';
 import { viewportFor } from '../geo/viewport';
 import type { SourceBackend, AudiomSourceValue } from '../sources/types';
@@ -19,9 +23,11 @@ export interface BuildEmbedResult {
   backend?: SourceBackend;
 }
 
+const PLUGIN_ONLY_SET: ReadonlySet<string> = new Set(PLUGIN_ONLY_KEYS);
+
 /**
- * Compose an `AudiomEmbedConfig.dynamic({...}).toUrl(baseUrl)` call from the
- * resolved plugin options + the chart. All field-level normalization is
+ * Compose an `AudiomEmbedConfig.dynamic({...}).toUrl(baseUrl)` call from
+ * the resolved plugin options + the chart. Field-level normalisation is
  * delegated to the embedder; this module only translates plugin options
  * into the embedder's configuration shape.
  *
@@ -30,42 +36,42 @@ export interface BuildEmbedResult {
  */
 export async function buildEmbedUrl(
   chart: Highcharts.Chart,
-  options: AudiomPluginOptions
+  options: AudiomPluginOptions,
+  signal?: AbortSignal
 ): Promise<BuildEmbedResult | null> {
-  const { sources, geojson, backend } = await resolveSources(chart, options);
+  const { sources, geojson, backend } = await resolveSources(
+    chart,
+    options,
+    signal
+  );
   if (sources.length === 0) return null;
 
   // Derive viewport from extracted GeoJSON unless the caller pinned one.
   const derivedViewport = geojson ? viewportFor(geojson) : null;
 
-  // Strip plugin-only fields; everything else is a passthrough to the embedder.
-  const {
-    enabled: _enabled,
-    backend: _backend,
-    sources: _sourcesIn,
-    center,
-    displayMode: _displayMode,
-    audiomTabLabel: _audiomTabLabel,
-    highchartsTabLabel: _highchartsTabLabel,
-    showOpenInTabButton: _showOpenInTabButton,
-    openInTabLabel: _openInTabLabel,
-    baseUrl: _baseUrl,
-    rules: _rules,
-    onReady: _onReady,
-    onError: _onError,
-    onEmbedReady: _onEmbedReady,
-    ...embedderPassthrough
-  } = options;
+  // Strip plugin-only fields; everything else is a passthrough to the
+  // embedder. Driven by PLUGIN_ONLY_KEYS so adding a new plugin-only
+  // option auto-strips it (and the assertion in types.ts catches drift).
+  const embedderPassthrough: Partial<IAudiomEmbedConfig> = {};
+  for (const [key, value] of Object.entries(options)) {
+    if (PLUGIN_ONLY_SET.has(key)) continue;
+    if (value === undefined) continue;
+    (embedderPassthrough as Record<string, unknown>)[key] = value;
+  }
 
   const configInput: Omit<IAudiomEmbedConfig, 'embedId'> = {
-    ...embedderPassthrough,
+    ...(embedderPassthrough as Omit<IAudiomEmbedConfig, 'embedId' | 'sources'>),
     sources: sources as IAudiomSource[] | string[]
   };
 
   // Caller-provided center/zoom win over derived viewport.
-  if (center !== undefined) {
-    configInput.center = Coordinates.fromArray(center);
-  } else if (derivedViewport && configInput.latitude === undefined && configInput.longitude === undefined) {
+  if (options.center !== undefined) {
+    configInput.center = Coordinates.fromArray(options.center);
+  } else if (
+    derivedViewport &&
+    configInput.latitude === undefined &&
+    configInput.longitude === undefined
+  ) {
     configInput.longitude = derivedViewport.center[0];
     configInput.latitude = derivedViewport.center[1];
   }
@@ -77,3 +83,7 @@ export async function buildEmbedUrl(
   const url = options.baseUrl ? config.toUrl(options.baseUrl) : config.toUrl();
   return { url, config, sources, backend };
 }
+
+// Reference PluginOnlyKey to keep the import in the .d.ts so consumers
+// can opt into the literal union type if they need it.
+export type _PluginOnlyKey = PluginOnlyKey;

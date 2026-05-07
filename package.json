@@ -9,8 +9,9 @@
   ],
   "scripts": {
     "dev:sample": "npm run dev --workspace sample",
-    "build:plugin": "npm run build --workspace audiom-highcharts",
-    "test:plugin": "npm run test --workspace audiom-highcharts"
+    "build:plugin": "npm run build --workspace @xrnavigation/audiom-highcharts",
+    "test:plugin": "npm run test --workspace @xrnavigation/audiom-highcharts",
+    "test:coverage": "npm run test:coverage --workspace @xrnavigation/audiom-highcharts"
   },
   "devDependencies": {
     "typescript": "^5.4.0",

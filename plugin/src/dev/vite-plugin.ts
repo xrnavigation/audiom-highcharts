@@ -20,6 +20,7 @@
  */
 import type { Plugin, ViteDevServer, Connect } from 'vite';
 import { randomUUID } from 'node:crypto';
+import { resolveLogger, type AudiomLogger } from '../util/logger';
 
 export interface AudiomHighchartsDevOptions {
   /**
@@ -57,6 +58,11 @@ export interface AudiomHighchartsDevOptions {
    * server is (re)started; if Chrome still blocks it, supply publicBase.
    */
   publicBase?: string;
+  /**
+   * Logger used for the "dev source server ready" startup line. Defaults
+   * to a `console.info` logger; pass `silentLogger` to suppress.
+   */
+  logger?: AudiomLogger;
 }
 
 const DEFAULTS = {
@@ -72,6 +78,7 @@ export function audiomHighchartsDev(
   const maxBodyBytes = options.maxBodyBytes ?? DEFAULTS.maxBodyBytes;
   const allowOrigin = options.allowOrigin ?? DEFAULTS.allowOrigin;
   const publicBase = options.publicBase ? trimSlash(options.publicBase) : null;
+  const log = resolveLogger(options.logger);
 
   // In-memory store. Keys are UUIDs; values are raw JSON bodies as Buffers
   // so we don't reparse on each GET. Cleared on dev-server restart.
@@ -102,8 +109,7 @@ export function audiomHighchartsDev(
         const pnaNote = publicBase
           ? `public base: ${publicBase}`
           : 'using localhost (PNA headers enabled — restart dev server if Audiom blocks GeoJSON fetches)';
-        // eslint-disable-next-line no-console
-        console.info(`[audiom-highcharts] dev source server ready: ${base}${prefix}/upload (${pnaNote})`);
+        log.info(`dev source server ready: ${base}${prefix}/upload (${pnaNote})`);
       });
     }
   };

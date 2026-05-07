@@ -1,16 +1,38 @@
 {
-  "name": "audiom-highcharts",
-  "version": "0.1.0-dev",
+  "name": "@xrnavigation/audiom-highcharts",
+  "version": "0.1.0-alpha.0",
   "type": "module",
   "description": "Highcharts plugin that adds Audiom audio accessibility to map charts.",
-  "main": "dist/audiom-highcharts.umd.cjs",
+  "license": "UNLICENSED",
+  "author": "XR Navigation Inc.",
+  "homepage": "https://github.com/xrnavigation/audiom-highcharts#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/xrnavigation/audiom-highcharts.git"
+  },
+  "bugs": {
+    "url": "https://github.com/xrnavigation/audiom-highcharts/issues"
+  },
+  "keywords": [
+    "highcharts",
+    "highmaps",
+    "audiom",
+    "accessibility",
+    "audio",
+    "geojson",
+    "sonification",
+    "a11y"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "sideEffects": false,
   "module": "dist/audiom-highcharts.mjs",
   "types": "dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/audiom-highcharts.mjs",
-      "require": "./dist/audiom-highcharts.umd.cjs"
+      "import": "./dist/audiom-highcharts.mjs"
     },
     "./vite": {
       "types": "./dist/vite-plugin.d.ts",
@@ -20,15 +42,24 @@
   "files": [
     "dist",
     "src",
-    "README.md"
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
   ],
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com",
+    "access": "restricted"
+  },
   "scripts": {
     "build": "rollup -c",
     "dev": "rollup -c -w",
     "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
     "test:watch": "vitest"
   },
   "peerDependencies": {
+    "@xrnavigation/audiom-api-client": "^1.0.0",
+    "@xrnavigation/audiom-embedder": "^1.0.0",
     "highcharts": ">=10.0.0",
     "vite": ">=5"
   },
@@ -38,8 +69,6 @@
     }
   },
   "dependencies": {
-    "@xrnavigation/audiom-api-client": "^1.0.0",
-    "@xrnavigation/audiom-embedder": "^1.0.0",
     "topojson-client": "^3.1.0",
     "topojson-server": "^3.0.1",
     "topojson-simplify": "^3.0.3"
@@ -53,7 +82,11 @@
     "@types/topojson-server": "^3.0.4",
     "@types/topojson-simplify": "^3.0.3",
     "@types/topojson-specification": "^1.0.5",
+    "@vitest/coverage-v8": "^1.6.0",
+    "@xrnavigation/audiom-api-client": "^1.0.0",
+    "@xrnavigation/audiom-embedder": "^1.0.0",
     "highcharts": "^11.4.0",
+    "jsdom": "^24.0.0",
     "rollup": "^4.18.0",
     "rollup-plugin-dts": "^6.1.1",
     "tslib": "^2.6.0",

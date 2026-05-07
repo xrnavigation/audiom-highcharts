@@ -13,6 +13,7 @@
  */
 import type { FeatureCollection } from '../geo/types';
 import type { SourceBackend, SourcePutContext, AudiomSourceValue } from './types';
+import { resolveFetch, httpError } from './_http';
 
 export interface PresignedPut {
   /** PUT this URL with the JSON body. */
@@ -41,7 +42,7 @@ export function s3PresignedBackend(
       'audiom-highcharts: s3PresignedBackend requires a `getPresignedPut` callback.'
     );
   }
-  const fetchImpl = options.fetchImpl ?? globalThis.fetch;
+  const fetchImpl = resolveFetch(options.fetchImpl, 's3PresignedBackend');
 
   return {
     name: 's3-presigned',
@@ -62,9 +63,7 @@ export function s3PresignedBackend(
         signal: ctx.signal
       });
       if (!res.ok) {
-        throw new Error(
-          `audiom-highcharts: s3PresignedBackend PUT → ${res.status} ${res.statusText}`
-        );
+        throw await httpError('s3PresignedBackend', 'PUT', uploadUrl, res);
       }
       return [publicUrl];
     }
