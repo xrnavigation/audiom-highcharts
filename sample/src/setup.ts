@@ -66,6 +66,11 @@ export async function renderMap(config: SampleMapConfig): Promise<Highcharts.Cha
       }
     ],
     audiom: {
+      // Render the visual heatmap on the Audiom side so the colors
+      // assigned by the rules' `fill` expressions (interpolated from
+      // each region's data value) are visible — mirroring the chart's
+      // choropleth as a heatmap.
+      showVisualMap: true,
       ...(rulesUrl ? { rules: rulesUrl } : {}),
       ...(config.audiomCenter ? { center: config.audiomCenter } : {}),
       ...(config.audiomZoom !== undefined ? { zoom: config.audiomZoom } : {}),
