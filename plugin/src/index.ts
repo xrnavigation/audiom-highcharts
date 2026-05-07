@@ -36,16 +36,38 @@ export type {
   MemoryBackendHandle,
   AudiomBackendOptions
 } from './sources';
-export { AudiomVisibility } from './sources';
 
 export type {
   UploadAudiomRulesOptions,
-  UploadAudiomRulesResult,
-  AudiomRulesV2,
-  AudiomRuleRow,
-  AudiomAugmenterRow
+  UploadAudiomRulesResult
 } from './rules/upload';
-export { AugmenterPosition } from './rules/upload';
+
+// Re-export the wire-format enums + types from the api-client so callers
+// have a single import surface and don't need to depend on the client
+// package directly. Use `RulesetVisibility` (and `MapVisibility` where
+// relevant) instead of redefining them locally.
+export {
+  AudiomClient,
+  RulesetVisibility,
+  MapVisibility,
+  AugmenterPosition
+} from '@xrnavigation/audiom-api-client';
+export type {
+  MapboxRule,
+  MapboxRuleSet,
+  MapboxAugmenter,
+  MapboxFilter,
+  MapboxExpression,
+  MapboxOutputValue,
+  RulesetData,
+  RuleData,
+  AugmenterData,
+  DatasourceData,
+  UploadRulesetOptions,
+  UploadRulesetResult,
+  UploadGeoJsonOptions,
+  AudiomClientOptions
+} from '@xrnavigation/audiom-api-client';
 
 export type { PreviewButtonOptions, PreviewButtonHandle } from './ui/preview-button';
 

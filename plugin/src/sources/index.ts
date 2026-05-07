@@ -12,7 +12,7 @@ export {
 } from './s3';
 export { type DevServerBackendOptions } from './dev-server';
 export { type MemoryBackendHandle } from './memory';
-export { type AudiomBackendOptions, AudiomVisibility } from './audiom';
+export { type AudiomBackendOptions } from './audiom';
 
 import { inlineBackend } from './inline';
 import { staticBackend } from './static';

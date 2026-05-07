@@ -5,6 +5,7 @@ import dts from 'rollup-plugin-dts';
 const external = [
   'highcharts',
   '@xrnavigation/audiom-embedder',
+  '@xrnavigation/audiom-api-client',
   'topojson-client',
   'topojson-server',
   'topojson-simplify'
@@ -30,6 +31,7 @@ export default [
         globals: {
           highcharts: 'Highcharts',
           '@xrnavigation/audiom-embedder': 'AudiomEmbedder',
+          '@xrnavigation/audiom-api-client': 'AudiomApiClient',
           'topojson-client': 'topojson',
           'topojson-server': 'topojsonServer',
           'topojson-simplify': 'topojsonSimplify'

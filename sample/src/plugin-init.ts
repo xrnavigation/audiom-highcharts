@@ -5,8 +5,7 @@
  */
 import Highcharts from 'highcharts/highmaps';
 import AudiomPlugin, {
-  SourceBackend,
-  AudiomVisibility
+  SourceBackend
 } from 'audiom-highcharts';
 import { setupDisplayModeToggle } from './mode-toggle';
 import { AUDIOM_DIRECT } from './audiom-direct-config';
@@ -47,8 +46,7 @@ export function setupSample(): {
             apiUrl: AUDIOM_DIRECT.apiUrl,
             apiKey: AUDIOM_DIRECT.apiKey,
             organizationId: AUDIOM_DIRECT.organizationId,
-            frontendUrl: AUDIOM_DIRECT.frontendUrl,
-            visibility: AudiomVisibility.ApiKey
+            frontendUrl: AUDIOM_DIRECT.frontendUrl
           })
         : SourceBackend.devServer()
     });

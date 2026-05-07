@@ -6,7 +6,7 @@
  * Each kind is uploaded at most once per page load (results memoized in a
  * Promise-keyed Map).
  */
-import { uploadAudiomRules, AudiomVisibility } from 'audiom-highcharts';
+import { uploadAudiomRules, RulesetVisibility } from 'audiom-highcharts';
 import { POPULATION_RULES, GDP_RULES } from './audiom-rules';
 import type { AudiomRulesFile } from './audiom-rules-types';
 import { AUDIOM_DIRECT, type AudiomDirectConfig } from './audiom-direct-config';
@@ -69,7 +69,7 @@ async function uploadRulesToAudiom(
     frontendUrl: cfg.frontendUrl,
     slug,
     name: `Audiom-Highcharts sample (${kind})`,
-    visibility: AudiomVisibility.ApiKey,
+    visibility: RulesetVisibility.ApiKey,
     rules: RULES_BY_KIND[kind] as Parameters<typeof uploadAudiomRules>[0]['rules']
   });
   return result.rulesUrl;
