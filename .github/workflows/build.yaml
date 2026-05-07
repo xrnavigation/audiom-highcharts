@@ -48,9 +48,9 @@ jobs:
           # path requires a token bound to a real user account, and the
           # ephemeral GITHUB_TOKEN bot identity doesn't qualify.
           # Workaround: a classic PAT with `read:packages` scope, stored
-          # as the PACKAGES_READ_TOKEN secret. Falls back to GITHUB_TOKEN
+          # as the NPM_TOKEN secret. Falls back to GITHUB_TOKEN
           # so first-party PRs still attempt to run before the secret is
           # provisioned (they'll fail at install but with a clearer error).
           registries: https://npm.pkg.github.com
-          apiKeys: ${{ secrets.PACKAGES_READ_TOKEN || secrets.GITHUB_TOKEN }}
+          apiKeys: ${{ secrets.NPM_TOKEN || secrets.GITHUB_TOKEN }}
           coverageDirectory: plugin/coverage
