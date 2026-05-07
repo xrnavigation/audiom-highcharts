@@ -1,6 +1,7 @@
 import typescript from '@rollup/plugin-typescript';
 import nodeResolve from '@rollup/plugin-node-resolve';
 import dts from 'rollup-plugin-dts';
+import { string as stringPlugin } from 'rollup-plugin-string';
 
 const external = [
   'highcharts',
@@ -24,6 +25,7 @@ export default [
       }
     ],
     plugins: [
+      stringPlugin({ include: '**/*.css' }),
       nodeResolve(),
       typescript({ tsconfig: './tsconfig.json', declaration: false })
     ]

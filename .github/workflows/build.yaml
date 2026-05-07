@@ -28,9 +28,14 @@ jobs:
       - name: Run tests via shared composite action
         uses: StudioWhyNot/act/common/npm/npm-test@master
         with:
+          workingDirectory: .
           nodeVersion: ${{ env.NODE_VERSION }}
-          testCommand: npm run test:coverage
+          # CI script wraps vitest with --reporter=json --outputFile so the
+          # composite action can upload it as an artifact.
+          testCommand: npm run test:ci
+          uploadTestResults: true
+          testResultsFile: plugin/test-results.json
           uploadCoverage: true
           apiKeys: ${{ secrets.GITHUB_TOKEN }}
           registry: https://npm.pkg.github.com
-          workingDirectory: plugin
+          coverageDirectory: plugin/coverage

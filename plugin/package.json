@@ -55,6 +55,7 @@
     "dev": "rollup -c -w",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
+    "test:ci": "vitest run --coverage --reporter=default --reporter=json --outputFile=test-results.json",
     "test:watch": "vitest"
   },
   "peerDependencies": {
@@ -89,6 +90,7 @@
     "jsdom": "^24.0.0",
     "rollup": "^4.18.0",
     "rollup-plugin-dts": "^6.1.1",
+    "rollup-plugin-string": "^3.0.0",
     "tslib": "^2.6.0",
     "typescript": "^5.4.0",
     "vitest": "^1.6.0"
