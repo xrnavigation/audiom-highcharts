@@ -18,6 +18,7 @@ env:
 
 jobs:
   test:
+    name: Run tests.
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -39,8 +40,17 @@ jobs:
           # NB: input is `registries` (plural, newline-separated), not
           # `registry` — the action silently ignores unknown inputs and
           # then falls back to its default Gitea-style URL, which 401s on
-          # real github.com. Pin to the actual GitHub Packages npm host
-          # and pair it with GITHUB_TOKEN.
+          # real github.com. Pin to the actual GitHub Packages npm host.
+          #
+          # Auth note: GITHUB_TOKEN routinely 401s against npm.pkg.github.com
+          # for cross-repo @org/* packages even when the package's "Manage
+          # Actions access" grants this repo read — the npm-legacy code
+          # path requires a token bound to a real user account, and the
+          # ephemeral GITHUB_TOKEN bot identity doesn't qualify.
+          # Workaround: a classic PAT with `read:packages` scope, stored
+          # as the PACKAGES_READ_TOKEN secret. Falls back to GITHUB_TOKEN
+          # so first-party PRs still attempt to run before the secret is
+          # provisioned (they'll fail at install but with a clearer error).
           registries: https://npm.pkg.github.com
-          apiKeys: ${{ secrets.GITHUB_TOKEN }}
+          apiKeys: ${{ secrets.PACKAGES_READ_TOKEN || secrets.GITHUB_TOKEN }}
           coverageDirectory: plugin/coverage
