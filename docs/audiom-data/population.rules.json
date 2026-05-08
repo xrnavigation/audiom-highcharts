@@ -1,0 +1,101 @@
+{
+  "version": 2,
+  "rules": [
+    {
+      "id": "choropleth-population-with-value",
+      "filter": [
+        "all",
+        [
+          "==",
+          [
+            "get",
+            "ruleType"
+          ],
+          "choropleth_region"
+        ],
+        [
+          "has",
+          "value"
+        ]
+      ],
+      "output": {
+        "ruleType": "choropleth_region",
+        "name": [
+          "concat",
+          [
+            "coalesce",
+            [
+              "get",
+              "name"
+            ],
+            "Unknown country"
+          ],
+          ", ",
+          [
+            "to-string",
+            [
+              "get",
+              "value"
+            ]
+          ],
+          " million people"
+        ],
+        "ruleName": "",
+        "passable": true,
+        "fill": [
+          "step",
+          [
+            "to-number",
+            [
+              "get",
+              "value"
+            ]
+          ],
+          "#EFEFFF",
+          6.223329772884783,
+          "#9999FF",
+          38.72983346207417,
+          "#4444FF",
+          241.02852568339557,
+          "#222288",
+          1500,
+          "#000033"
+        ],
+        "stroke": "#666666",
+        "fill-opacity": 0.85
+      }
+    },
+    {
+      "id": "choropleth-population-no-value",
+      "filter": [
+        "==",
+        [
+          "get",
+          "ruleType"
+        ],
+        "choropleth_region"
+      ],
+      "output": {
+        "ruleType": "choropleth_region",
+        "name": [
+          "concat",
+          [
+            "coalesce",
+            [
+              "get",
+              "name"
+            ],
+            "Unknown country"
+          ],
+          " (no population data)"
+        ],
+        "ruleName": "",
+        "passable": true,
+        "fill": "#DDDDDD",
+        "stroke": "#666666",
+        "fill-opacity": 0.85
+      }
+    }
+  ],
+  "augmenters": []
+}

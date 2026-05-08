@@ -42,7 +42,8 @@ void renderMap({
     stops: BLUE_LOG_STOPS
   },
   tooltipPointFormat: '{point.name}: <b>{point.value}M</b>',
-  rules: 'population',
+  staticGeojsonPath: 'audiom-data/world-population.geojson',
+  staticRulesPath: 'audiom-data/population.rules.json',
   // Audiom's iframe is narrower than the Highcharts pane; pin a wide world
   // view so the whole globe is visible at first paint.
   audiomCenter: [0, 20],

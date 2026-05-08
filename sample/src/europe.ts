@@ -47,5 +47,6 @@ void renderMap({
     stops: BLUE_LOG_STOPS
   },
   tooltipPointFormat: '{point.name}: <b>${point.value:,.0f}</b>',
-  rules: 'gdp'
+  staticGeojsonPath: 'audiom-data/europe-gdp.geojson',
+  staticRulesPath: 'audiom-data/gdp.rules.json'
 });

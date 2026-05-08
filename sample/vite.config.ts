@@ -31,6 +31,9 @@ import { audiomHighchartsDev } from '@xrnavigation/audiom-highcharts/vite';
 // ----------------------------------------------------------------------------
 
 export default defineConfig({
+  // GitHub Pages deploys to /<repo-name>/ unless a custom domain is used.
+  // Set VITE_BASE_PATH=/my-repo/ in CI (or leave unset for root deploys).
+  base: process.env.VITE_BASE_PATH ?? '/',
   plugins: [
     audiomHighchartsDev({
       // publicBase: 'https://your-tunnel.loca.lt',
@@ -38,9 +41,23 @@ export default defineConfig({
   ],
   server: {
     port: 5173,
-    open: true
+    open: true,
+    // The Audiom iframe runs at a different origin (audiom-staging.herokuapp
+    // .com) and fetches our baked GeoJSON / rules JSON from /audiom-data/*.
+    // Vite's static-asset middleware does not set CORS headers on its own,
+    // so add a permissive policy here. Same headers nginx-sample.conf adds
+    // for the production /docs build.
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, HEAD, OPTIONS',
+      'Access-Control-Allow-Headers': '*'
+    }
   },
   build: {
+    // Build directly into the repo's /docs folder so GitHub Pages can serve
+    // it without a separate publish step.
+    outDir: resolve(__dirname, '..', 'docs'),
+    emptyOutDir: true,
     rollupOptions: {
       input: {
         index: resolve(__dirname, 'index.html'),

@@ -97,6 +97,75 @@ Pair with `backend: SourceBackend.devServer()` on the page side. If
 Chrome's Private Network Access blocks the iframe from fetching
 `localhost`, set `publicBase` to a tunnel URL (ngrok, localtunnel).
 
+## Sample site
+
+The `sample/` directory contains three demo pages (index, Europe GDP,
+world population). They are built as a static site into `docs/`, which
+is what GitHub Pages serves.
+
+### Run the dev server
+
+```sh
+npm run dev:sample
+```
+
+Opens `http://localhost:5173`. The Vite dev server serves the pre-baked
+`sample/public/audiom-data/*.geojson` and `*.rules.json` files with
+permissive CORS headers, so the Audiom iframe can fetch them directly
+without a runtime upload.
+
+> **Chrome Private Network Access** — if the Audiom iframe (served from
+> `https://audiom-staging.herokuapp.com`) can't reach `localhost:5173`,
+> either disable the Chrome flag at
+> `chrome://flags/#local-network-access-check`, or supply a tunnel URL
+> via the `publicBase` option in `sample/vite.config.ts`.
+
+### Build a static site
+
+A single command does everything:
+
+```sh
+npm run build:sample
+```
+
+This runs three steps in order:
+
+1. **`prebuild:sample`** — fetches the Highcharts TopoJSON topologies
+   from the CDN, merges in the chart data values, and writes four static
+   files to `sample/public/audiom-data/`:
+   - `europe-gdp.geojson` / `gdp.rules.json`
+   - `world-population.geojson` / `population.rules.json`
+2. **`build:plugin`** — compiles the plugin so the sample workspace
+   picks up any local changes.
+3. **`build --workspace sample`** — runs `vite build`, which copies
+   everything from `sample/public/` (including `audiom-data/`) into
+   `docs/` alongside the bundled JS/HTML.
+
+The output in `docs/` is a fully self-contained static site. The Audiom
+iframe fetches the GeoJSON and rules files directly from there — no
+server-side upload endpoint required.
+
+### Preview the build locally
+
+```sh
+docker compose -f pages-compose.yaml up sample
+```
+
+Starts an nginx container at `http://localhost:4001` serving `docs/`
+with `Access-Control-Allow-Origin: *`, matching the cross-origin fetch
+the Audiom iframe performs in production. The Jekyll service (port 4000)
+can also be used to verify GitHub Pages' build pipeline.
+
+### Deploy to GitHub Pages
+
+If the site is served under a sub-path (e.g.
+`https://example.github.io/repo-name/`), set the environment variable
+before building:
+
+```sh
+VITE_BASE_PATH=/repo-name/ npm run build:sample
+```
+
 ## Display modes
 
 - `AudiomDisplayMode.Tabbed` *(default)* — Highcharts on tab 1, Audiom on tab 2.

@@ -6,6 +6,7 @@
  */
 import Highcharts from 'highcharts/highmaps';
 import type { AudiomEmbedReadyInfo } from '@xrnavigation/audiom-highcharts';
+import type { IAudiomSource } from '@xrnavigation/audiom-embedder';
 import { setupSample } from './plugin-init';
 import { uploadRules, type RulesKind } from './rules-upload';
 import { firstSourceUrl, mountViewGeoJSONLink } from './link-bar';
@@ -22,7 +23,22 @@ export interface SampleMapConfig {
   colorAxis: Highcharts.ColorAxisOptions;
   /** Tooltip pointFormat. */
   tooltipPointFormat: string;
-  /** Which canned Audiom rules file to attach. */
+  /**
+   * Path (relative to the Vite `base`) to a pre-baked GeoJSON file written
+   * by `scripts/prebuild-sample-assets.mjs`. When both `staticGeojsonPath`
+   * and `staticRulesPath` are set the backend upload pipeline is skipped
+   * entirely and the Audiom embed receives these URLs as `sources`.
+   */
+  staticGeojsonPath?: string;
+  /**
+   * Path (relative to the Vite `base`) to a pre-baked rules JSON file.
+   * Must be set together with `staticGeojsonPath`.
+   */
+  staticRulesPath?: string;
+  /**
+   * Which canned Audiom rules file to attach (upload-based flow).
+   * Ignored when `staticGeojsonPath` + `staticRulesPath` are set.
+   */
   rules?: RulesKind;
   /** Override the Audiom embed's initial center (`[lon, lat]`). */
   audiomCenter?: [number, number];
@@ -39,11 +55,28 @@ export async function renderMap(config: SampleMapConfig): Promise<Highcharts.Cha
   setupSample();
   const topology = await fetch(config.topologyUrl).then((r) => r.json());
 
-  // Resolve the rules URL up-front so the Audiom embed URL bakes it in.
-  const rulesUrl = config.rules ? await uploadRules(config.rules) : null;
-
   const containerId = config.containerId ?? 'container';
   const container = document.getElementById(containerId);
+
+  // ---------------------------------------------------------------------------
+  // Static path: pre-baked GeoJSON + rules written by prebuild script.
+  // The Audiom iframe fetches directly from the served static files — no
+  // runtime upload needed.
+  // ---------------------------------------------------------------------------
+  const useStatic = !!(config.staticGeojsonPath && config.staticRulesPath);
+
+  // Resolve static asset URLs relative to the Vite base path so the result
+  // is correct both in dev (base '/') and on GitHub Pages (base '/<repo>/').
+  const base = (import.meta.env as Record<string, string>).BASE_URL ?? '/';
+  const staticGeojsonUrl = useStatic
+    ? new URL(config.staticGeojsonPath!, window.location.origin + base).toString()
+    : null;
+  const staticRulesUrl = useStatic
+    ? new URL(config.staticRulesPath!, window.location.origin + base).toString()
+    : null;
+
+  // Upload-based path: resolve the rules URL up-front so the embed URL bakes it in.
+  const rulesUrl = !useStatic && config.rules ? await uploadRules(config.rules) : null;
 
   return Highcharts.mapChart(containerId, {
     chart: { map: topology },
@@ -67,18 +100,28 @@ export async function renderMap(config: SampleMapConfig): Promise<Highcharts.Cha
     ],
     audiom: {
       // Render the visual heatmap on the Audiom side so the colors
-      // assigned by the rules' `fill` expressions (interpolated from
-      // each region's data value) are visible — mirroring the chart's
-      // choropleth as a heatmap.
+      // assigned by the rules' `fill` expressions are visible.
       showVisualMap: true,
-      ...(rulesUrl ? { rules: rulesUrl } : {}),
+      // Static path: bypass the backend pipeline entirely. The embedder
+      // encodes per-source rules as `<sourceUrl>.rules=<rulesUrl>` query
+      // params, so the rules URL must live INSIDE the source object.
+      ...(useStatic ? {
+        sources: [{
+          source: staticGeojsonUrl!,
+          type: 'geojson',
+          rules: staticRulesUrl!
+        } as IAudiomSource]
+      } : {
+        // Upload-based path (AUDIOM_DIRECT or dev server).
+        ...(rulesUrl ? { rules: rulesUrl } : {})
+      }),
       ...(config.audiomCenter ? { center: config.audiomCenter } : {}),
       ...(config.audiomZoom !== undefined ? { zoom: config.audiomZoom } : {}),
       onEmbedReady: (info: AudiomEmbedReadyInfo) => {
         const url = firstSourceUrl(info.sources);
         if (!url || !container) return;
         const absolute = new URL(url, window.location.origin).toString();
-        mountViewGeoJSONLink(container, absolute, rulesUrl);
+        mountViewGeoJSONLink(container, absolute, staticRulesUrl ?? rulesUrl);
       }
     }
   });

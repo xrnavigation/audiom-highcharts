@@ -1,0 +1,29 @@
+services:
+  jekyll:
+    image: jekyll/jekyll:3.8
+    container_name: docs-preview
+    volumes:
+    - ./docs:/srv/jekyll:rw
+    - jekyll-bundle:/usr/local/bundle
+    ports:
+    - "4000:4000"
+    command: jekyll serve --host 0.0.0.0 --force_polling --livereload
+    environment:
+    - JEKYLL_ENV=development
+
+  # Plain nginx with permissive CORS, used to verify the static bundle works
+  # in a worst-case browser environment (CORS preflight, etc.) since the
+  # Audiom iframe runs at a different origin and fetches our GeoJSON / rules.
+  # Jekyll alone is sufficient for layout/Pages parity testing.
+  sample:
+    image: nginx:alpine
+    container_name: sample-preview
+    volumes:
+    - ./docs:/usr/share/nginx/html:ro
+    - ./nginx-sample.conf:/etc/nginx/conf.d/default.conf:ro
+    ports:
+    - "4001:80"
+
+volumes:
+  jekyll-bundle:
+

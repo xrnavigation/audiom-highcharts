@@ -12,7 +12,9 @@
     "build:plugin": "npm run build --workspace @xrnavigation/audiom-highcharts",
     "test:plugin": "npm run test --workspace @xrnavigation/audiom-highcharts",
     "test:coverage": "npm run test:coverage --workspace @xrnavigation/audiom-highcharts",
-    "test:ci": "npm run test:ci --workspace @xrnavigation/audiom-highcharts"
+    "test:ci": "npm run test:ci --workspace @xrnavigation/audiom-highcharts",
+    "prebuild:sample": "node scripts/prebuild-sample-assets.mjs",
+    "build:sample": "npm run prebuild:sample && npm run build:plugin && npm run build --workspace sample && node -e \"require('fs').writeFileSync('docs/.nojekyll','')\""
   },
   "devDependencies": {
     "typescript": "^5.4.0",

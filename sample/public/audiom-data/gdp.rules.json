@@ -1,0 +1,101 @@
+{
+  "version": 2,
+  "rules": [
+    {
+      "id": "choropleth-gdp-with-value",
+      "filter": [
+        "all",
+        [
+          "==",
+          [
+            "get",
+            "ruleType"
+          ],
+          "choropleth_region"
+        ],
+        [
+          "has",
+          "value"
+        ]
+      ],
+      "output": {
+        "ruleType": "choropleth_region",
+        "name": [
+          "concat",
+          [
+            "coalesce",
+            [
+              "get",
+              "name"
+            ],
+            "Unknown country"
+          ],
+          ", $",
+          [
+            "to-string",
+            [
+              "get",
+              "value"
+            ]
+          ],
+          " GDP per capita"
+        ],
+        "ruleName": "",
+        "passable": true,
+        "fill": [
+          "step",
+          [
+            "to-number",
+            [
+              "get",
+              "value"
+            ]
+          ],
+          "#EFEFFF",
+          9550.6038556696,
+          "#9999FF",
+          22803.508501982764,
+          "#4444FF",
+          54446.81905545778,
+          "#222288",
+          130000.00000000006,
+          "#000033"
+        ],
+        "stroke": "#666666",
+        "fill-opacity": 0.85
+      }
+    },
+    {
+      "id": "choropleth-gdp-no-value",
+      "filter": [
+        "==",
+        [
+          "get",
+          "ruleType"
+        ],
+        "choropleth_region"
+      ],
+      "output": {
+        "ruleType": "choropleth_region",
+        "name": [
+          "concat",
+          [
+            "coalesce",
+            [
+              "get",
+              "name"
+            ],
+            "Unknown country"
+          ],
+          " (no GDP data)"
+        ],
+        "ruleName": "",
+        "passable": true,
+        "fill": "#DDDDDD",
+        "stroke": "#666666",
+        "fill-opacity": 0.85
+      }
+    }
+  ],
+  "augmenters": []
+}
