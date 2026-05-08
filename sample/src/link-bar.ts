@@ -18,14 +18,15 @@ export function firstSourceUrl(sources: AudiomSourceValue[]): string | null {
 }
 
 /**
- * Mount a small "View GeoJSON" / "View Rules" link bar above the chart
- * container. Idempotent per chart container — subsequent calls replace
- * the bar's contents in place.
+ * Mount a small "View GeoJSON" / "View Rules" / "Preview in Audiom" link
+ * bar above the chart container. Idempotent per chart container — subsequent
+ * calls replace the bar's contents in place.
  */
 export function mountViewGeoJSONLink(
   container: HTMLElement,
   geojsonUrl: string,
-  rulesUrl: string | null
+  rulesUrl: string | null,
+  audiomUrl?: string
 ): void {
   let bar = container.parentElement?.querySelector<HTMLDivElement>(
     ':scope > .audiom-sample-links'
@@ -53,5 +54,14 @@ export function mountViewGeoJSONLink(
     rulesLink.textContent = 'View Rules';
     rulesLink.title = rulesUrl;
     bar.appendChild(rulesLink);
+  }
+  if (audiomUrl) {
+    const audiomLink = document.createElement('a');
+    audiomLink.href = audiomUrl;
+    audiomLink.target = '_blank';
+    audiomLink.rel = 'noopener noreferrer';
+    audiomLink.textContent = 'Preview in Audiom';
+    audiomLink.title = audiomUrl;
+    bar.appendChild(audiomLink);
   }
 }

@@ -121,7 +121,7 @@ export async function renderMap(config: SampleMapConfig): Promise<Highcharts.Cha
         const url = firstSourceUrl(info.sources);
         if (!url || !container) return;
         const absolute = new URL(url, window.location.origin).toString();
-        mountViewGeoJSONLink(container, absolute, staticRulesUrl ?? rulesUrl);
+        mountViewGeoJSONLink(container, absolute, staticRulesUrl ?? rulesUrl, info.embedUrl);
       }
     }
   });

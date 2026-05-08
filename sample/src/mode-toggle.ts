@@ -11,8 +11,6 @@ export function setupDisplayModeToggle(): AudiomDisplayMode {
   const mode =
     raw === AudiomDisplayMode.Tabbed
       ? AudiomDisplayMode.Tabbed
-      : raw === AudiomDisplayMode.Button
-      ? AudiomDisplayMode.Button
       : AudiomDisplayMode.SideBySide;
 
   const host = document.getElementById('mode-toggle');
@@ -39,13 +37,8 @@ export function setupDisplayModeToggle(): AudiomDisplayMode {
     sbsOpt.value = AudiomDisplayMode.SideBySide;
     sbsOpt.textContent = 'Side-by-side';
 
-    const btnOpt = document.createElement('option');
-    btnOpt.value = AudiomDisplayMode.Button;
-    btnOpt.textContent = 'Open in Audiom (button)';
-
     select.appendChild(sbsOpt);
     select.appendChild(tabbedOpt);
-    select.appendChild(btnOpt);
     select.value = mode;
 
     select.addEventListener('change', () => {
