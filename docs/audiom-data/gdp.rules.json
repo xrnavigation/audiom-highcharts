@@ -61,7 +61,6 @@
           130000.00000000006,
           "#000033"
         ],
-        "stroke": "#666666",
         "fill-opacity": 0.85
       }
     },
@@ -92,7 +91,6 @@
         "ruleName": "",
         "passable": true,
         "fill": "#DDDDDD",
-        "stroke": "#666666",
         "fill-opacity": 0.85
       }
     }

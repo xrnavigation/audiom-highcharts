@@ -42,7 +42,6 @@ const WORLD_POPULATION_DATA = [
 // ---------------------------------------------------------------------------
 const HEATMAP_RAMP = ['#EFEFFF', '#9999FF', '#4444FF', '#222288', '#000033'];
 const HEATMAP_NO_DATA = '#DDDDDD';
-const HEATMAP_STROKE = '#666666';
 const HEATMAP_FILL_OPACITY = 0.85;
 
 /** Five log-spaced `step` buckets between min and max. */
@@ -73,7 +72,6 @@ const GDP_RULES = {
         ruleName: '',
         passable: true,
         fill: heatmapFill(4000, 130000),
-        stroke: HEATMAP_STROKE,
         'fill-opacity': HEATMAP_FILL_OPACITY
       }
     },
@@ -86,7 +84,6 @@ const GDP_RULES = {
         ruleName: '',
         passable: true,
         fill: HEATMAP_NO_DATA,
-        stroke: HEATMAP_STROKE,
         'fill-opacity': HEATMAP_FILL_OPACITY
       }
     }
@@ -106,7 +103,6 @@ const POPULATION_RULES = {
         ruleName: '',
         passable: true,
         fill: heatmapFill(1, 1500),
-        stroke: HEATMAP_STROKE,
         'fill-opacity': HEATMAP_FILL_OPACITY
       }
     },
@@ -119,7 +115,6 @@ const POPULATION_RULES = {
         ruleName: '',
         passable: true,
         fill: HEATMAP_NO_DATA,
-        stroke: HEATMAP_STROKE,
         'fill-opacity': HEATMAP_FILL_OPACITY
       }
     }

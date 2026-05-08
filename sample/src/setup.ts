@@ -5,7 +5,7 @@
  * `plugin-init.ts`; rule-file upload routing lives in `rules-upload.ts`.
  */
 import Highcharts from 'highcharts/highmaps';
-import type { AudiomEmbedReadyInfo } from '@xrnavigation/audiom-highcharts';
+import { viewportFor, type AudiomEmbedReadyInfo } from '@xrnavigation/audiom-highcharts';
 import type { IAudiomSource } from '@xrnavigation/audiom-embedder';
 import { setupSample } from './plugin-init';
 import { uploadRules, type RulesKind } from './rules-upload';
@@ -78,6 +78,30 @@ export async function renderMap(config: SampleMapConfig): Promise<Highcharts.Cha
   // Upload-based path: resolve the rules URL up-front so the embed URL bakes it in.
   const rulesUrl = !useStatic && config.rules ? await uploadRules(config.rules) : null;
 
+  // In the upload flow the plugin computes a viewport from the extracted
+  // GeoJSON via `viewportFor()`. The static path skips the backend entirely,
+  // so `resolveSources` returns `geojson: null` and no viewport is derived
+  // — leaving the embed at Audiom's default zoom 0 where the avatar can't
+  // navigate at human scale. Fetch the baked GeoJSON here and compute the
+  // same viewport ourselves so the static flow matches the upload flow.
+  let derivedCenter: [number, number] | undefined;
+  let derivedZoom: number | undefined;
+  if (useStatic) {
+    try {
+      const geo = await fetch(staticGeojsonUrl!).then((r) => r.json());
+      const vp = viewportFor(geo);
+      if (vp) {
+        derivedCenter = vp.center;
+        derivedZoom = vp.zoom;
+      }
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.warn('[sample] failed to derive viewport from baked GeoJSON', err);
+    }
+  }
+  const audiomCenter = config.audiomCenter ?? derivedCenter;
+  const audiomZoom = config.audiomZoom ?? derivedZoom;
+
   return Highcharts.mapChart(containerId, {
     chart: { map: topology },
     title: { text: config.title },
@@ -115,8 +139,8 @@ export async function renderMap(config: SampleMapConfig): Promise<Highcharts.Cha
         // Upload-based path (AUDIOM_DIRECT or dev server).
         ...(rulesUrl ? { rules: rulesUrl } : {})
       }),
-      ...(config.audiomCenter ? { center: config.audiomCenter } : {}),
-      ...(config.audiomZoom !== undefined ? { zoom: config.audiomZoom } : {}),
+      ...(audiomCenter ? { center: audiomCenter } : {}),
+      ...(audiomZoom !== undefined ? { zoom: audiomZoom } : {}),
       onEmbedReady: (info: AudiomEmbedReadyInfo) => {
         const url = firstSourceUrl(info.sources);
         if (!url || !container) return;

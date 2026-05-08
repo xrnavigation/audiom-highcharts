@@ -160,6 +160,8 @@ export type { LayoutHandle, MountLayoutOptions } from './ui/layout';
 export type { CreateIframeOptions } from './embed/iframe-manager';
 export type { BuildEmbedResult } from './embed/build-url';
 export type { SeriesExtractor } from './extractors';
+export { computeBBox, bboxCenter, bboxZoom, viewportFor } from './geo/viewport';
+export type { BBox } from './geo/viewport';
 export type {
   SourceLinksOptions,
   SourceLinksHandle
