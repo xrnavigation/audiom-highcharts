@@ -1,13 +1,59 @@
 /* CSS for the plugin-rendered chrome (tabbed + side-by-side layouts).
  * Injected once per document by ensureStylesInjected(); class names are
- * scoped under .audiom-hc-root to minimise collision with host styles. */
+ * scoped under .audiom-hc-root to minimise collision with host styles.
+ *
+ * THEMING
+ * -------
+ * Every visual token is exposed as a CSS custom property on
+ * `.audiom-hc-root`. Override any of them from host CSS to retheme the
+ * plugin without writing full rule overrides, e.g.:
+ *
+ *   .audiom-hc-root {
+ *     --audiom-hc-accent: #ff6600;
+ *     --audiom-hc-border-color: #333;
+ *     --audiom-hc-radius-lg: 0;
+ *   }
+ *
+ * For deeper changes, host CSS can still target the `.audiom-hc-*`
+ * classes directly (see `./css-classes.ts`), or the host can disable
+ * stylesheet injection entirely via `options.ui.injectStyles = false`
+ * and ship its own CSS.
+ */
 
 .audiom-hc-root {
+  /* Color tokens */
+  --audiom-hc-bg: #fff;
+  --audiom-hc-border-color: #d0d4d9;
+  --audiom-hc-text: #222;
+  --audiom-hc-text-muted: #555;
+  --audiom-hc-hover-bg: #eef0f3;
+  --audiom-hc-accent: #4a90e2;
+  --audiom-hc-button-bg: #2c5fa8;
+  --audiom-hc-button-bg-hover: #244c87;
+  --audiom-hc-button-border: #244c87;
+  --audiom-hc-button-text: #fff;
+
+  /* Geometry tokens */
+  --audiom-hc-radius-lg: 6px;
+  --audiom-hc-radius-md: 4px;
+  --audiom-hc-radius-sm: 2px;
+  --audiom-hc-gap: 1rem;
+  --audiom-hc-pad-y: 0.5rem;
+  --audiom-hc-pad-x: 1rem;
+  --audiom-hc-min-height: 400px;
+
+  /* Typography tokens */
+  --audiom-hc-font-size: 0.9rem;
+
+  /* Focus ring tokens */
+  --audiom-hc-focus-ring-width: 2px;
+  --audiom-hc-focus-ring-offset: 2px;
+
   display: flex;
   flex-direction: column;
   width: 100%;
   height: 100%;
-  min-height: 400px;
+  min-height: var(--audiom-hc-min-height);
   font-family: inherit;
   box-sizing: border-box;
 }
@@ -24,7 +70,7 @@
 .audiom-hc-tablist {
   display: flex;
   gap: 2px;
-  border-bottom: 1px solid #d0d4d9;
+  border-bottom: 1px solid var(--audiom-hc-border-color);
   background: transparent;
   padding: 0;
   margin: 0;
@@ -34,38 +80,38 @@
   border: 1px solid transparent;
   border-bottom: none;
   background: transparent;
-  padding: 0.5rem 1rem;
+  padding: var(--audiom-hc-pad-y) var(--audiom-hc-pad-x);
   font: inherit;
-  font-size: 0.9rem;
-  color: #555;
+  font-size: var(--audiom-hc-font-size);
+  color: var(--audiom-hc-text-muted);
   cursor: pointer;
-  border-top-left-radius: 6px;
-  border-top-right-radius: 6px;
+  border-top-left-radius: var(--audiom-hc-radius-lg);
+  border-top-right-radius: var(--audiom-hc-radius-lg);
   margin-bottom: -1px;
 }
 .audiom-hc-tab:hover {
-  color: #222;
-  background: #eef0f3;
+  color: var(--audiom-hc-text);
+  background: var(--audiom-hc-hover-bg);
 }
 .audiom-hc-tab[aria-selected="true"] {
-  background: #fff;
-  border-color: #d0d4d9;
-  color: #222;
+  background: var(--audiom-hc-bg);
+  border-color: var(--audiom-hc-border-color);
+  color: var(--audiom-hc-text);
   font-weight: 600;
 }
 .audiom-hc-tab:focus-visible {
-  outline: 2px solid #4a90e2;
-  outline-offset: -2px;
+  outline: var(--audiom-hc-focus-ring-width) solid var(--audiom-hc-accent);
+  outline-offset: calc(-1 * var(--audiom-hc-focus-ring-width));
 }
 .audiom-hc-panel {
   flex: 1 1 auto;
   min-height: 0;
   display: none;
-  background: #fff;
-  border: 1px solid #d0d4d9;
+  background: var(--audiom-hc-bg);
+  border: 1px solid var(--audiom-hc-border-color);
   border-top: none;
-  border-bottom-left-radius: 6px;
-  border-bottom-right-radius: 6px;
+  border-bottom-left-radius: var(--audiom-hc-radius-lg);
+  border-bottom-right-radius: var(--audiom-hc-radius-lg);
   overflow: hidden;
 }
 .audiom-hc-panel[data-active="true"] {
@@ -81,16 +127,16 @@
 /* --------------- Side-by-side layout --------------- */
 .audiom-hc-root[data-mode="side-by-side"] {
   flex-direction: row;
-  gap: 1rem;
+  gap: var(--audiom-hc-gap);
   align-items: stretch;
 }
 .audiom-hc-root[data-mode="side-by-side"] > .audiom-hc-pane {
   flex: 1 1 0;
   min-width: 0;
   min-height: 0;
-  background: #fff;
-  border: 1px solid #d0d4d9;
-  border-radius: 6px;
+  background: var(--audiom-hc-bg);
+  border: 1px solid var(--audiom-hc-border-color);
+  border-radius: var(--audiom-hc-radius-lg);
   overflow: hidden;
 }
 .audiom-hc-root[data-mode="side-by-side"] > .audiom-hc-pane > .audiom-hc-chart-slot,
@@ -113,7 +159,7 @@
 .audiom-hc-preview-bar {
   display: flex;
   justify-content: flex-end;
-  padding: 0.5rem 0;
+  padding: var(--audiom-hc-pad-y) 0;
 }
 
 /* Wrapper for iframe + preview-button stacked vertically inside an
@@ -136,32 +182,32 @@
   display: flex;
   gap: 0.75rem;
   flex-wrap: wrap;
-  margin: 0.5rem 0 0.75rem;
-  font-size: 0.9rem;
+  margin: var(--audiom-hc-pad-y) 0 0.75rem;
+  font-size: var(--audiom-hc-font-size);
 }
 .audiom-hc-source-links a:focus-visible {
-  outline: 2px solid #4a90e2;
-  outline-offset: 2px;
-  border-radius: 2px;
+  outline: var(--audiom-hc-focus-ring-width) solid var(--audiom-hc-accent);
+  outline-offset: var(--audiom-hc-focus-ring-offset);
+  border-radius: var(--audiom-hc-radius-sm);
 }
 .audiom-hc-preview-button {
   display: inline-block;
-  padding: 0.5rem 1rem;
+  padding: var(--audiom-hc-pad-y) var(--audiom-hc-pad-x);
   font: inherit;
-  font-size: 0.9rem;
-  color: #fff;
-  background: #2c5fa8;
-  border: 1px solid #244c87;
-  border-radius: 4px;
+  font-size: var(--audiom-hc-font-size);
+  color: var(--audiom-hc-button-text);
+  background: var(--audiom-hc-button-bg);
+  border: 1px solid var(--audiom-hc-button-border);
+  border-radius: var(--audiom-hc-radius-md);
   text-decoration: none;
   cursor: pointer;
 }
 .audiom-hc-preview-button:hover {
-  background: #244c87;
+  background: var(--audiom-hc-button-bg-hover);
 }
 .audiom-hc-preview-button:focus-visible {
-  outline: 2px solid #4a90e2;
-  outline-offset: 2px;
+  outline: var(--audiom-hc-focus-ring-width) solid var(--audiom-hc-accent);
+  outline-offset: var(--audiom-hc-focus-ring-offset);
 }
 .audiom-hc-preview-button::after {
   content: " \2197";

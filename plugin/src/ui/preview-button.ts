@@ -16,6 +16,7 @@
 
 import { ensureStylesInjected } from './styles';
 import { CSS_CLASSES } from './css-classes';
+import type { AudiomUiOptions } from '../types';
 
 export interface PreviewButtonOptions {
   url: string;
@@ -24,6 +25,8 @@ export interface PreviewButtonOptions {
   title?: string;
   /** Where the link opens. Default `_blank`. */
   target?: string;
+  /** UI customization — stylesheet injection control, additional CSS, shadow root. */
+  ui?: AudiomUiOptions;
 }
 
 export interface PreviewButtonHandle {
@@ -39,7 +42,10 @@ export interface PreviewButtonHandle {
  */
 export function createPreviewButton(opts: PreviewButtonOptions): PreviewButtonHandle {
   const doc = document;
-  ensureStylesInjected(doc);
+  ensureStylesInjected(opts.ui?.styleRoot ?? doc, {
+    inject: opts.ui?.injectStyles,
+    additionalStyles: opts.ui?.additionalStyles
+  });
 
   const bar = doc.createElement('div');
   bar.className = CSS_CLASSES.PREVIEW_BAR;

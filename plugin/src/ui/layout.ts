@@ -9,7 +9,7 @@
  * we put `renderTo` back where it was.
  */
 import type Highcharts from 'highcharts';
-import { AudiomDisplayMode } from '../types';
+import { AudiomDisplayMode, type AudiomUiOptions } from '../types';
 import { ensureStylesInjected } from './styles';
 import { CSS_CLASSES, DOM_ID_PREFIX, LayoutSide } from './css-classes';
 import { chartRenderTo } from '../util/chart';
@@ -28,6 +28,8 @@ export interface MountLayoutOptions {
    * The chart should reflow to fit the new container size.
    */
   onChartShown?: () => void;
+  /** UI customization — stylesheet injection control, additional CSS, shadow root. */
+  ui?: AudiomUiOptions;
 }
 
 export interface LayoutHandle {
@@ -52,7 +54,13 @@ export function mountLayout(
 ): LayoutHandle {
   // `renderTo` is the user-supplied container element.
   const renderTo = chartRenderTo(chart);
-  ensureStylesInjected(renderTo.ownerDocument);
+  ensureStylesInjected(
+    opts.ui?.styleRoot ?? renderTo.ownerDocument,
+    {
+      inject: opts.ui?.injectStyles,
+      additionalStyles: opts.ui?.additionalStyles
+    }
+  );
 
   const originalParent = renderTo.parentNode;
   const originalNextSibling = renderTo.nextSibling;

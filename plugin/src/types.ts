@@ -77,6 +77,35 @@ export interface AudiomIframeOptions {
 }
 
 /**
+ * Customization hooks for the plugin's injected stylesheet.
+ *
+ * The plugin ships a small CSS file ([./ui/styles.css](./ui/styles.css))
+ * exposing every visual token as a CSS custom property on
+ * `.audiom-hc-root` (e.g. `--audiom-hc-accent`, `--audiom-hc-radius-lg`).
+ * For most theming needs, override those variables from host CSS — no
+ * plugin option is required.
+ *
+ * Use these options for heavier customization:
+ *  - `injectStyles: false` — suppress the plugin stylesheet entirely; the
+ *    host ships its own CSS targeting the `.audiom-hc-*` classes
+ *    (see {@link CSS_CLASSES} re-exported from the package entry).
+ *  - `additionalStyles` — append a CSS string to the plugin's `<style>`
+ *    tag for per-chart theme tweaks. Deduped by content hash so re-mounts
+ *    don't duplicate rules.
+ *  - `styleRoot` — inject the stylesheet into a Shadow DOM root instead of
+ *    `document.head`. Use when the chart container lives inside a custom
+ *    element with shadow DOM.
+ */
+export interface AudiomUiOptions {
+  /** When false, do not inject the plugin's default stylesheet. */
+  injectStyles?: boolean;
+  /** Extra CSS appended to the plugin's `<style>` tag. */
+  additionalStyles?: string;
+  /** Where to inject the plugin stylesheet. Defaults to the chart container's owner document. */
+  styleRoot?: Document | ShadowRoot;
+}
+
+/**
  * Plugin-only options — fields the plugin owns that have no equivalent in
  * `IAudiomEmbedConfig`. The {@link PLUGIN_ONLY_KEYS} tuple is the runtime
  * source of truth used by `embed/build-url.ts` to strip these fields
@@ -95,6 +124,7 @@ export const PLUGIN_ONLY_KEYS = [
   'baseUrl',
   'rules',
   'iframe',
+  'ui',
   'logger',
   'onReady',
   'onError',
@@ -148,6 +178,13 @@ export interface AudiomPluginOnlyOptions {
 
   /** Override iframe `allow` / `sandbox` attributes. */
   iframe?: AudiomIframeOptions;
+
+  /**
+   * Customize the plugin's injected stylesheet — disable injection,
+   * append additional CSS, or target a Shadow DOM root. See
+   * {@link AudiomUiOptions}.
+   */
+  ui?: AudiomUiOptions;
 
   /**
    * Override the plugin's logger. Defaults to a thin `console` wrapper.

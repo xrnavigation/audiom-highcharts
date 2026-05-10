@@ -163,7 +163,15 @@ function presentEmbed(
   result: BuildEmbedResult,
   state: ChartState
 ): void {
-  ensureStylesInjected();
+  const ui = options.ui;
+  // Inject the plugin stylesheet (or skip, per ui.injectStyles). Each
+  // sub-component (preview-button, layout, source-links) also calls
+  // ensureStylesInjected with the same options for safety; the call is
+  // idempotent and additionalStyles are deduped by content hash.
+  ensureStylesInjected(ui?.styleRoot, {
+    inject: ui?.injectStyles,
+    additionalStyles: ui?.additionalStyles
+  });
   const titleText = getChartTitle(chart) ?? '';
   const mode = options.displayMode ?? AudiomDisplayMode.Tabbed;
 
@@ -171,7 +179,8 @@ function presentEmbed(
     state.button = mountPreviewButtonAfter(chartRenderTo(chart), {
       url: result.url,
       label: options.openInTabLabel,
-      title: options.audiomTabLabel ?? 'Open this map in Audiom'
+      title: options.audiomTabLabel ?? 'Open this map in Audiom',
+      ui
     });
     return;
   }
@@ -189,7 +198,8 @@ function presentEmbed(
     const btn = createPreviewButton({
       url: result.url,
       label: options.openInTabLabel,
-      title: 'Open this map in Audiom (new tab)'
+      title: 'Open this map in Audiom (new tab)',
+      ui
     });
     wrapper.appendChild(btn.element);
     wrapper.appendChild(iframe);
@@ -208,7 +218,8 @@ function presentEmbed(
       } catch {
         /* chart may already be destroyed */
       }
-    }
+    },
+    ui
   });
 }
 

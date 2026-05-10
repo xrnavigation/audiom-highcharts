@@ -7,6 +7,7 @@
  * surface the same diagnostics without copying DOM glue.
  */
 import type { AudiomSourceValue } from '../sources/types';
+import type { AudiomUiOptions } from '../types';
 import { ensureStylesInjected } from './styles';
 import { CSS_CLASSES } from './css-classes';
 
@@ -19,6 +20,8 @@ export interface SourceLinksOptions {
   geojsonLabel?: string;
   /** Label for the rules link. @default "View Rules" */
   rulesLabel?: string;
+  /** UI customization — stylesheet injection control, additional CSS, shadow root. */
+  ui?: AudiomUiOptions;
 }
 
 export interface SourceLinksHandle {
@@ -41,7 +44,10 @@ export function firstSourceUrl(sources: AudiomSourceValue[]): string | null {
 
 /** Build the link-bar `<div>` (without inserting it into the DOM). */
 export function createSourceLinks(opts: SourceLinksOptions): SourceLinksHandle {
-  ensureStylesInjected();
+  ensureStylesInjected(opts.ui?.styleRoot, {
+    inject: opts.ui?.injectStyles,
+    additionalStyles: opts.ui?.additionalStyles
+  });
   const bar = document.createElement('div');
   bar.className = CSS_CLASSES.SOURCE_LINKS;
   // Group + label so screen-reader users hear the bar as a coherent

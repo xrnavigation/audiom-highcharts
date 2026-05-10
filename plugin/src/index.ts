@@ -174,10 +174,13 @@ export type {
   AudiomCenter,
   AudiomEmbedReadyInfo,
   AudiomIframeOptions,
+  AudiomUiOptions,
   AudiomPluginOnlyOptions,
   PluginOnlyKey
 } from './types';
 export { AudiomDisplayMode, FilterMode, VisualStyle } from './types';
+export { ensureStylesInjected } from './ui/styles';
+export type { EnsureStylesOptions } from './ui/styles';
 
 export type {
   Feature,
