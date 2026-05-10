@@ -20,16 +20,9 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Verify tag matches package.json version
-        uses: StudioWhyNot/act/common/yq/yq-expression@master
-        id: version
-        with:
-          file: plugin/package.json
-          expression: '.version'
-
-      - name: Fail if tag and package version disagree
         run: |
           TAG_VERSION="${GITHUB_REF_NAME#v}"
-          PKG_VERSION="${{ steps.version.outputs.result }}"
+          PKG_VERSION=$(node -p "require('./plugin/package.json').version")
           if [ "$TAG_VERSION" != "$PKG_VERSION" ]; then
             echo "::error::Tag v$TAG_VERSION does not match package.json version $PKG_VERSION"
             exit 1
