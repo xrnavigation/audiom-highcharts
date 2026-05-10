@@ -1,4 +1,7 @@
 import { renderMap, BLUE_LOG_STOPS } from './setup';
+import { mountSamplePage } from './sample-nav';
+
+mountSamplePage('world');
 
 // Population (millions, approx 2022). hc-key matches Highcharts world map ISO-2 codes.
 const data: Array<[string, number]> = [

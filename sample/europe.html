@@ -41,15 +41,9 @@
     </style>
   </head>
   <body>
-    <nav aria-label="Sample pages">
-      <a href="index.html"><span aria-hidden="true">← </span>Samples</a>
-      <span class="sep" aria-hidden="true">|</span>
-      <a href="world.html">World Population</a>
-      <span class="sep" aria-hidden="true">|</span>
-      <span id="mode-toggle"></span>
-    </nav>
+    <nav id="sample-nav" aria-label="Sample pages"></nav>
     <main>
-      <h1>Europe — GDP per Capita (USD, approx 2023)</h1>
+      <h1 id="sample-title"></h1>
       <div id="container"></div>
     </main>
     <script type="module" src="/src/europe.ts"></script>

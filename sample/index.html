@@ -63,20 +63,8 @@
     <main>
       <h1>Audiom-Highcharts Samples</h1>
       <p class="subtitle">Choropleth map demos with Audiom audio accessibility.</p>
-      <ul aria-label="Sample demos">
-        <li>
-          <a href="europe.html">
-            <strong>Europe — GDP per Capita</strong>
-            <span>GDP per capita (USD, approx 2023) across European countries. Well-bounded region with no antimeridian crossings.</span>
-          </a>
-        </li>
-        <li>
-          <a href="world.html">
-            <strong>World Population</strong>
-            <span>Population (millions, approx 2022) across world countries. Demonstrates known rendering challenges with world-scale GeoJSON (see Audiom-Front-End #1377).</span>
-          </a>
-        </li>
-      </ul>
+      <ul id="sample-list" aria-label="Sample demos"></ul>
     </main>
+    <script type="module" src="/src/index.ts"></script>
   </body>
 </html>

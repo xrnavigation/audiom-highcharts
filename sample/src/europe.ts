@@ -1,4 +1,7 @@
 import { renderMap, BLUE_LOG_STOPS } from './setup';
+import { mountSamplePage } from './sample-nav';
+
+mountSamplePage('europe');
 
 // GDP per capita (USD, approx 2023). hc-key matches Highcharts Europe map.
 const data: Array<[string, number]> = [
