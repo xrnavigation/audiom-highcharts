@@ -11,6 +11,7 @@ permissions:
 
 env:
   NODE_VERSION: ${{ vars.NODE_VERSION || '20' }}
+  NPM_TOKEN: ${{ secrets.NPM_TOKEN || secrets.GITHUB_TOKEN }}
 
 jobs:
   release:
@@ -37,17 +38,17 @@ jobs:
       - name: Install dependencies
         run: npm ci
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN || secrets.GITHUB_TOKEN }}
 
       - name: Build plugin
         run: npm run build:plugin
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN || secrets.GITHUB_TOKEN }}
 
       - name: Run tests
         run: npm run test:plugin
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN || secrets.GITHUB_TOKEN }}
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
@@ -57,4 +58,4 @@ jobs:
       - name: Publish to GitHub Packages
         run: npm publish --workspace @xrnavigation/audiom-highcharts
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN || secrets.GITHUB_TOKEN }}
