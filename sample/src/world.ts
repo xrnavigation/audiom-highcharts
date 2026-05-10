@@ -47,8 +47,11 @@ void renderMap({
   tooltipPointFormat: '{point.name}: <b>{point.value}M</b>',
   staticGeojsonPath: 'audiom-data/world-population.geojson',
   staticRulesPath: 'audiom-data/population.rules.json',
-  // Audiom's iframe is narrower than the Highcharts pane; pin a wide world
-  // view so the whole globe is visible at first paint.
-  audiomCenter: [0, 20],
-  audiomZoom: 0
+  // Audiom's iframe is narrower than the Highcharts pane. Center on South
+  // Asia (~India) so the densest cluster of data-bearing countries —
+  // China, India, Pakistan, Bangladesh, Indonesia, Iran, Vietnam, the
+  // Philippines, plus the Middle East and East Africa — is in view at
+  // first paint instead of the mid-Atlantic.
+  audiomCenter: [78, 22],
+  audiomZoom: 1.4
 });
