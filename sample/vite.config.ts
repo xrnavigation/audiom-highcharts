@@ -31,9 +31,10 @@ import { audiomHighchartsDev } from '@xrnavigation/audiom-highcharts/vite';
 // ----------------------------------------------------------------------------
 
 export default defineConfig({
-  // GitHub Pages deploys to /<repo-name>/ unless a custom domain is used.
-  // Set VITE_BASE_PATH=/my-repo/ in CI (or leave unset for root deploys).
-  base: process.env.VITE_BASE_PATH ?? '/',
+  // Use './' so all emitted asset URLs are RELATIVE to each HTML page.
+  // Works under any deployment path (root, /audiom-highcharts/, file://)
+  // without needing a per-environment VITE_BASE_PATH.
+  base: './',
   plugins: [
     audiomHighchartsDev({
       // publicBase: 'https://your-tunnel.loca.lt',

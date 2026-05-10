@@ -65,14 +65,13 @@ export async function renderMap(config: SampleMapConfig): Promise<Highcharts.Cha
   // ---------------------------------------------------------------------------
   const useStatic = !!(config.staticGeojsonPath && config.staticRulesPath);
 
-  // Resolve static asset URLs relative to the Vite base path so the result
-  // is correct both in dev (base '/') and on GitHub Pages (base '/<repo>/').
-  const base = (import.meta.env as Record<string, string>).BASE_URL ?? '/';
+  // Resolve static asset URLs relative to the CURRENT PAGE so the result
+  // is correct under any deployment base (root, /<repo>/, file://, etc.).
   const staticGeojsonUrl = useStatic
-    ? new URL(config.staticGeojsonPath!, window.location.origin + base).toString()
+    ? new URL(config.staticGeojsonPath!, window.location.href).toString()
     : null;
   const staticRulesUrl = useStatic
-    ? new URL(config.staticRulesPath!, window.location.origin + base).toString()
+    ? new URL(config.staticRulesPath!, window.location.href).toString()
     : null;
 
   // Upload-based path: resolve the rules URL up-front so the embed URL bakes it in.
