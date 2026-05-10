@@ -43,6 +43,10 @@
       li a:hover {
         box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12);
       }
+      li a:focus-visible {
+        outline: 2px solid #4a90e2;
+        outline-offset: 2px;
+      }
       li a strong {
         display: block;
         font-size: 1rem;
@@ -56,21 +60,23 @@
     </style>
   </head>
   <body>
-    <h1>Audiom-Highcharts Samples</h1>
-    <p class="subtitle">Choropleth map demos with Audiom audio accessibility.</p>
-    <ul>
-      <li>
-        <a href="europe.html">
-          <strong>Europe — GDP per Capita</strong>
-          <span>GDP per capita (USD, approx 2023) across European countries. Well-bounded region with no antimeridian crossings.</span>
-        </a>
-      </li>
-      <li>
-        <a href="world.html">
-          <strong>World Population</strong>
-          <span>Population (millions, approx 2022) across world countries. Demonstrates known rendering challenges with world-scale GeoJSON (see Audiom-Front-End #1377).</span>
-        </a>
-      </li>
-    </ul>
+    <main>
+      <h1>Audiom-Highcharts Samples</h1>
+      <p class="subtitle">Choropleth map demos with Audiom audio accessibility.</p>
+      <ul aria-label="Sample demos">
+        <li>
+          <a href="europe.html">
+            <strong>Europe — GDP per Capita</strong>
+            <span>GDP per capita (USD, approx 2023) across European countries. Well-bounded region with no antimeridian crossings.</span>
+          </a>
+        </li>
+        <li>
+          <a href="world.html">
+            <strong>World Population</strong>
+            <span>Population (millions, approx 2022) across world countries. Demonstrates known rendering challenges with world-scale GeoJSON (see Audiom-Front-End #1377).</span>
+          </a>
+        </li>
+      </ul>
+    </main>
   </body>
 </html>

@@ -44,6 +44,11 @@ export function createSourceLinks(opts: SourceLinksOptions): SourceLinksHandle {
   ensureStylesInjected();
   const bar = document.createElement('div');
   bar.className = CSS_CLASSES.SOURCE_LINKS;
+  // Group + label so screen-reader users hear the bar as a coherent
+  // collection ("Audiom data sources, group, three links") rather than
+  // three loose links above the chart.
+  bar.setAttribute('role', 'group');
+  bar.setAttribute('aria-label', 'Audiom data sources');
 
   bar.appendChild(
     anchor(opts.geojsonUrl, opts.geojsonLabel ?? 'View GeoJSON')
@@ -85,5 +90,8 @@ function anchor(url: string, text: string): HTMLAnchorElement {
   a.rel = 'noopener noreferrer';
   a.textContent = text;
   a.title = url;
+  // Communicate the new-tab affordance to AT users; `target="_blank"`
+  // alone is invisible to screen readers (WCAG G201).
+  a.setAttribute('aria-label', `${text} (opens in a new tab)`);
   return a;
 }

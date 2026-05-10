@@ -98,6 +98,12 @@ export function mountLayout(
     const tablist = doc.createElement('div');
     tablist.className = CSS_CLASSES.TABLIST;
     tablist.setAttribute('role', 'tablist');
+    // Tablist needs an accessible name; combine the chart and Audiom
+    // labels so screen readers announce "Chart and Audiom tabs".
+    tablist.setAttribute(
+      'aria-label',
+      `${opts.chartLabel} and ${opts.audiomLabel} tabs`
+    );
 
     const chartTab = doc.createElement('button');
     chartTab.type = 'button';
@@ -174,14 +180,18 @@ export function mountLayout(
 
     setActiveTab(LayoutSide.Chart);
   } else {
-    // Side-by-side: two flex panes, both visible.
+    // Side-by-side: two flex panes, both visible. Use role=region so each
+    // pane becomes a landmark a screen-reader user can navigate between
+    // with their landmarks-list shortcut. `aria-label` provides the name.
     const chartPane = doc.createElement('div');
     chartPane.className = `${CSS_CLASSES.PANE} ${CSS_CLASSES.PANE_CHART}`;
+    chartPane.setAttribute('role', 'region');
     chartPane.setAttribute('aria-label', opts.chartLabel);
     chartPane.appendChild(chartSlot);
 
     const audiomPane = doc.createElement('div');
     audiomPane.className = `${CSS_CLASSES.PANE} ${CSS_CLASSES.PANE_AUDIOM}`;
+    audiomPane.setAttribute('role', 'region');
     audiomPane.setAttribute('aria-label', opts.audiomLabel);
     audiomPane.appendChild(audiomElement);
 

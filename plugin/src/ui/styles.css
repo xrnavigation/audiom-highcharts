@@ -139,6 +139,11 @@
   margin: 0.5rem 0 0.75rem;
   font-size: 0.9rem;
 }
+.audiom-hc-source-links a:focus-visible {
+  outline: 2px solid #4a90e2;
+  outline-offset: 2px;
+  border-radius: 2px;
+}
 .audiom-hc-preview-button {
   display: inline-block;
   padding: 0.5rem 1rem;

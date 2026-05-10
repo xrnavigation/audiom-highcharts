@@ -28,6 +28,12 @@ export function setupDisplayModeToggle(): AudiomDisplayMode {
     select.id = 'mode-toggle-select';
     select.style.padding = '0.25rem 0.5rem';
     select.style.fontSize = '0.875rem';
+    // Communicate the side-effect (page reload on change) to AT users so
+    // the control behaves predictably for keyboard / screen-reader users.
+    select.setAttribute(
+      'aria-description',
+      'Changing the display mode reloads the page.'
+    );
 
     const tabbedOpt = document.createElement('option');
     tabbedOpt.value = AudiomDisplayMode.Tabbed;

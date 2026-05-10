@@ -21,6 +21,11 @@
         text-decoration: none;
       }
       nav a:hover { text-decoration: underline; }
+      nav a:focus-visible {
+        outline: 2px solid #4a90e2;
+        outline-offset: 2px;
+        border-radius: 2px;
+      }
       nav .sep { margin: 0 0.4rem; color: #999; }
       h1 {
         margin: 0 0 1rem;
@@ -34,18 +39,20 @@
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
       }
     </style>
-    <script type="module" crossorigin src="./assets/europe-BcuzahbA.js"></script>
-    <link rel="modulepreload" crossorigin href="./assets/setup-DIzW_VUH.js">
+    <script type="module" crossorigin src="./assets/europe-1c3Pwoeq.js"></script>
+    <link rel="modulepreload" crossorigin href="./assets/setup-BSkIyQ6Q.js">
   </head>
   <body>
-    <nav>
-      <a href="index.html">← Samples</a>
-      <span class="sep">|</span>
+    <nav aria-label="Sample pages">
+      <a href="index.html"><span aria-hidden="true">← </span>Samples</a>
+      <span class="sep" aria-hidden="true">|</span>
       <a href="world.html">World Population</a>
-      <span class="sep">|</span>
+      <span class="sep" aria-hidden="true">|</span>
       <span id="mode-toggle"></span>
     </nav>
-    <h1>Europe — GDP per Capita (USD, approx 2023)</h1>
-    <div id="container"></div>
+    <main>
+      <h1>Europe — GDP per Capita (USD, approx 2023)</h1>
+      <div id="container"></div>
+    </main>
   </body>
 </html>
