@@ -1,36 +1,25 @@
 import { renderMap, BLUE_LOG_STOPS } from './setup';
 import { mountSamplePage } from './sample-nav';
+import { fetchWorldBankIndicator } from './world-bank-client';
+import { WORLD_POPULATION_FALLBACK } from './data/world-population-fallback';
 
 mountSamplePage('world');
 
-// Population (millions, approx 2022). hc-key matches Highcharts world map ISO-2 codes.
-const data: Array<[string, number]> = [
-  ['cn', 1412],
-  ['in', 1408],
-  ['us', 333],
-  ['id', 273],
-  ['pk', 231],
-  ['br', 215],
-  ['ng', 218],
-  ['bd', 169],
-  ['ru', 144],
-  ['mx', 128],
-  ['jp', 125],
-  ['et', 123],
-  ['ph', 115],
-  ['eg', 110],
-  ['vn', 98],
-  ['cd', 99],
-  ['de', 84],
-  ['tr', 85],
-  ['ir', 88],
-  ['fr', 68],
-  ['gb', 67],
-  ['it', 59],
-  ['za', 60],
-  ['ca', 39],
-  ['au', 26]
-];
+const filterKeys = new Set(WORLD_POPULATION_FALLBACK.map(([k]) => k));
+
+let data: Array<[string, number]>;
+try {
+  // World Bank: SP.POP.TOTL is total population (raw count). Convert to
+  // millions to match the existing color axis and tooltip formatting.
+  data = await fetchWorldBankIndicator({
+    indicator: 'SP.POP.TOTL',
+    filterKeys,
+    valueTransform: (raw) => raw / 1_000_000
+  });
+} catch (err) {
+  console.warn('[sample/world] World Bank fetch failed; using hardcoded fallback.', err);
+  data = WORLD_POPULATION_FALLBACK;
+}
 
 void renderMap({
   topologyUrl: 'https://code.highcharts.com/mapdata/custom/world.topo.json',
