@@ -44,14 +44,14 @@ AccessibilityModule(Highcharts);
  * Initialise the plugin (idempotent) and render the page's mode toggle.
  * Returns the resolved display mode so callers don't pass it explicitly.
  */
-export function setupSample(): {
+export function setupSample({ stepSize = '100km' }: { stepSize?: string } = {}): {
   displayMode: ReturnType<typeof setupDisplayModeToggle>;
 } {
   if (!initialized) {
     cachedDisplayMode = setupDisplayModeToggle();
     AudiomPlugin.init(Highcharts, {
       apiKey: SHARED_API_KEY,
-      stepSize: '100km',
+      stepSize,
       baseUrl: AUDIOM_BASE_URL,
       displayMode: cachedDisplayMode,
       // Backend selection:

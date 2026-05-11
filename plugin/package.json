@@ -1,6 +1,6 @@
 {
   "name": "@xrnavigation/audiom-highcharts",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "type": "module",
   "description": "Highcharts plugin that adds Audiom audio accessibility to map charts.",
   "license": "UNLICENSED",

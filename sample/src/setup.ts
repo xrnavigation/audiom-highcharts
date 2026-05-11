@@ -51,6 +51,11 @@ export interface SampleMapConfig {
    * Defaults to the chart title + subtitle when omitted.
    */
   accessibilityDescription?: string;
+  /**
+   * Audiom navigation step size, e.g. `'100km'` or `'600km'`.
+   * Defaults to `'100km'`.
+   */
+  stepSize?: string;
 }
 
 /**
@@ -59,7 +64,7 @@ export interface SampleMapConfig {
  * rules JSON and attaches its URL to every extracted source.
  */
 export async function renderMap(config: SampleMapConfig): Promise<Highcharts.Chart> {
-  setupSample();
+  setupSample({ stepSize: config.stepSize });
   const topology = await fetch(config.topologyUrl).then((r) => r.json());
 
   const containerId = config.containerId ?? 'container';
@@ -209,12 +214,10 @@ export async function renderIndicatorMap(
 ): Promise<Highcharts.Chart> {
   mountSamplePage(config.slug);
 
-  const filterKeys = new Set(config.fallback.map(([k]) => k));
   let data: Array<[string, number]>;
   try {
     data = await fetchWorldBankIndicator({
       indicator: config.indicator,
-      filterKeys,
       valueTransform: config.valueTransform
     });
   } catch (err) {

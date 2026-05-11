@@ -5,9 +5,6 @@ accessibility to map charts. On chart `load` the plugin extracts the
 chart's GeoJSON, hands it to a configurable storage backend, and mounts
 an Audiom embed alongside the chart.
 
-> Status: alpha. The public API is stable enough for evaluation; expect
-> minor refinements before 1.0.
-
 ## Installation
 
 ```sh
@@ -127,27 +124,6 @@ self-host Audiom on the same origin as your charts.
 - **Browsers** — ES2020 baseline. Last two majors of Chrome, Firefox,
   Safari, Edge. Requires `fetch`, `AbortController`, and
   `structuredClone`.
-
-## API surface
-
-Exported from the package root:
-
-- `init`, `isMapChart`, `isAudiomEnabled`, `resolveOptions`
-- `SourceBackend` (interface + factory namespace)
-- `mountLayout`, `createPreviewButton`, `mountPreviewButtonAfter`
-- `createAudiomIframe`, `updateIframeUrl`,
-  `DEFAULT_IFRAME_ALLOW`, `DEFAULT_IFRAME_SANDBOX`
-- `buildEmbedUrl`, `geojsonToDataUri`, `simplifyFeatureCollection`
-- `extractGeoJSON`, `registerExtractor`, `unregisterExtractor`,
-  `getExtractor`, `hasExtractor`, `registeredSeriesTypes`
-- `firstSourceUrl`, `createSourceLinks`, `mountSourceLinksAfter`
-- `uploadAudiomRules`
-- `defaultLogger`, `silentLogger`, `resolveLogger`
-- `AudiomDisplayMode`, `FilterMode`, `VisualStyle`
-
-Re-exported from `@xrnavigation/audiom-api-client`:
-
-- `AudiomClient`, `RulesetVisibility`, `MapVisibility`, `AugmenterPosition`
 
 ## Example
 

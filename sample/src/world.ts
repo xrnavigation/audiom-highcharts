@@ -10,12 +10,21 @@ void renderIndicatorMap({
   valueTransform: (raw) => raw / 1_000_000,
   topologyUrl: 'https://code.highcharts.com/mapdata/custom/world.topo.json',
   title: 'World Population (millions, approx 2022)',
-  subtitle: 'Source: World Bank — illustrative subset',
+  subtitle: 'Source: World Bank (SP.POP.TOTL), approx 2022',
   seriesName: 'Population',
-  colorAxis: { min: 1, max: 1500, type: 'logarithmic', stops: BLUE_LOG_STOPS },
+  colorAxis: {
+    min: 1,
+    max: 1500,
+    type: 'logarithmic',
+    stops: BLUE_LOG_STOPS,
+    // Larger indicator step: one tick per order of magnitude (1, 10, 100, 1000).
+    tickInterval: 1,
+    minorTickInterval: 0
+  },
   tooltipPointFormat: '{point.name}: <b>{point.value}M</b>',
   staticGeojsonPath: 'audiom-data/world-population.geojson',
   staticRulesPath: 'audiom-data/population.rules.json',
+  stepSize: '400km',
   // Center on South Asia so the densest data cluster is visible at first paint.
   audiomCenter: [78, 22],
   audiomZoom: 1.4

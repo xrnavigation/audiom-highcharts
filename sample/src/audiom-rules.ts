@@ -27,11 +27,15 @@ import type { AudiomRulesFile, RuleExpression } from './audiom-rules-types';
  * up with the chart's `type: 'logarithmic'` color axis.
  */
 const HEATMAP_RAMP = [
-  '#EFEFFF', // < bucket 1 boundary
-  '#9999FF',
-  '#4444FF',
-  '#222288',
-  '#000033'  // ≥ bucket 4 boundary
+  '#F7F7FF', // < bucket 1 boundary
+  '#D8D8FF',
+  '#B5B5FF',
+  '#8C8CFF',
+  '#5C5CFF',
+  '#3333DD',
+  '#1F1FAA',
+  '#101077',
+  '#000033'  // ≥ bucket 8 boundary
 ];
 /** Neutral gray for regions with no joined data. */
 const HEATMAP_NO_DATA = '#DDDDDD';
@@ -41,7 +45,7 @@ const HEATMAP_FILL_OPACITY = 0.85;
 
 /**
  * Build a `step` color expression with logarithmically-spaced
- * boundaries between `min` and `max`. Produces five color buckets
+ * boundaries between `min` and `max`. Produces nine color buckets
  * that approximate a logarithmic color axis.
  */
 function heatmapFill(min: number, max: number): RuleExpression {
@@ -52,10 +56,14 @@ function heatmapFill(min: number, max: number): RuleExpression {
     'step',
     ['to-number', ['get', 'value']],
     HEATMAP_RAMP[0],
-    stop(0.25), HEATMAP_RAMP[1],
-    stop(0.50), HEATMAP_RAMP[2],
-    stop(0.75), HEATMAP_RAMP[3],
-    stop(1.00), HEATMAP_RAMP[4]
+    stop(1 / 8), HEATMAP_RAMP[1],
+    stop(2 / 8), HEATMAP_RAMP[2],
+    stop(3 / 8), HEATMAP_RAMP[3],
+    stop(4 / 8), HEATMAP_RAMP[4],
+    stop(5 / 8), HEATMAP_RAMP[5],
+    stop(6 / 8), HEATMAP_RAMP[6],
+    stop(7 / 8), HEATMAP_RAMP[7],
+    stop(8 / 8), HEATMAP_RAMP[8]
   ];
 }
 

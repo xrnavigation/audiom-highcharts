@@ -61,6 +61,10 @@ export async function fetchWorldBankIndicator(
 
   const filtered = records.filter((r) => {
     if (r.value === null) return false;
+    // World Bank includes aggregate / regional rows (e.g. "WLD", "EUU",
+    // "8S") whose ids are 3 chars or contain digits — keep only true
+    // 2-letter ISO country codes.
+    if (!/^[A-Za-z]{2}$/.test(r.country.id)) return false;
     if (!filterKeys) return true;
     return filterKeys.has(r.country.id.toLowerCase());
   });
@@ -71,5 +75,9 @@ export async function fetchWorldBankIndicator(
     );
   }
 
-  return filtered.map((r) => [r.country.id.toLowerCase(), Math.round(valueTransform(r.value!))]);
+  return filtered
+    .map((r): [string, number] => [r.country.id.toLowerCase(), valueTransform(r.value!)])
+    // Drop non-positive values so logarithmic colour axes don't choke.
+    .filter(([, v]) => v > 0)
+    .map(([k, v]) => [k, v < 1 ? Number(v.toFixed(2)) : Math.round(v)]);
 }
