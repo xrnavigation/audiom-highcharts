@@ -57,15 +57,29 @@
         font-size: 0.85rem;
         color: #666;
       }
+      .skip-link {
+        position: absolute;
+        top: -999px;
+        left: 0;
+        padding: 0.5rem 1rem;
+        background: #000;
+        color: #fff;
+        font-size: 0.875rem;
+        text-decoration: none;
+        z-index: 9999;
+      }
+      .skip-link:focus { top: 0; }
     </style>
-    <script type="module" crossorigin src="./assets/index-Cz-t7NPn.js"></script>
-    <link rel="modulepreload" crossorigin href="./assets/sample-registry-Cin4ffpp.js">
+    <script type="module" crossorigin src="./assets/index-Cs7RwVrM.js"></script>
+    <link rel="modulepreload" crossorigin href="./assets/sample-registry-JvNs4W3Y.js">
   </head>
   <body>
+    <a class="skip-link" href="#sample-list">Skip to sample list</a>
     <main>
       <h1>Audiom-Highcharts Samples</h1>
       <p class="subtitle">Choropleth map demos with Audiom audio accessibility.</p>
       <ul id="sample-list" aria-label="Sample demos"></ul>
     </main>
+    <noscript><p>This page requires JavaScript. Please enable JavaScript to view the sample list.</p></noscript>
   </body>
 </html>
