@@ -10,6 +10,8 @@ import type { IAudiomSource } from '@xrnavigation/audiom-embedder';
 import { setupSample } from './plugin-init';
 import { uploadRules, type RulesKind } from './rules-upload';
 import { firstSourceUrl, mountViewGeoJSONLink } from './link-bar';
+import { mountSamplePage } from './sample-nav';
+import { fetchWorldBankIndicator } from './world-bank-client';
 
 export type { RulesKind };
 
@@ -44,6 +46,11 @@ export interface SampleMapConfig {
   audiomCenter?: [number, number];
   /** Override the Audiom embed's initial zoom. */
   audiomZoom?: number;
+  /**
+   * Plain-text description of the chart read by screen readers.
+   * Defaults to the chart title + subtitle when omitted.
+   */
+  accessibilityDescription?: string;
 }
 
 /**
@@ -101,13 +108,23 @@ export async function renderMap(config: SampleMapConfig): Promise<Highcharts.Cha
   const audiomCenter = config.audiomCenter ?? derivedCenter;
   const audiomZoom = config.audiomZoom ?? derivedZoom;
 
-  return Highcharts.mapChart(containerId, {
+  const a11yDescription =
+    config.accessibilityDescription ??
+    [config.title, config.subtitle].filter(Boolean).join('. ');
+
+  const chart = Highcharts.mapChart(containerId, {
     chart: { map: topology },
     title: { text: config.title },
     subtitle: config.subtitle ? { text: config.subtitle } : undefined,
     mapNavigation: {
       enabled: true,
       buttonOptions: { verticalAlign: 'bottom' }
+    },
+    accessibility: {
+      enabled: true,
+      description: a11yDescription,
+      keyboardNavigation: { enabled: true },
+      point: { valueDescriptionFormat: '{point.name}: {point.value}' }
     },
     colorAxis: config.colorAxis,
     series: [
@@ -148,6 +165,14 @@ export async function renderMap(config: SampleMapConfig): Promise<Highcharts.Cha
       }
     }
   });
+
+  // Update the sr-only live region so screen readers announce the loaded state.
+  const statusEl = document.getElementById('chart-status');
+  if (statusEl) {
+    statusEl.textContent = `Chart loaded: ${config.title}. Showing ${config.data.length} regions.`;
+  }
+
+  return chart;
 }
 
 /** Standard blue gradient used by the sample maps. */
@@ -156,3 +181,47 @@ export const BLUE_LOG_STOPS: Highcharts.ColorAxisOptions['stops'] = [
   [0.5, '#4444FF'],
   [1, '#000033']
 ];
+
+/**
+ * Config for a sample page that fetches live data from the World Bank API
+ * and falls back to a static snapshot. Extends {@link SampleMapConfig} but
+ * `data` is derived automatically — pass `fallback` instead.
+ */
+export interface IndicatorMapConfig extends Omit<SampleMapConfig, 'data'> {
+  /** Registry slug for this sample page (e.g. `'europe'`). */
+  slug: string;
+  /** World Bank indicator code, e.g. `'NY.GDP.PCAP.CD'`. */
+  indicator: string;
+  /** Static data used when the live fetch fails. Also determines the filter set. */
+  fallback: Array<[string, number]>;
+  /** Optional transform applied to each raw value (e.g. convert to millions). */
+  valueTransform?: (raw: number) => number;
+}
+
+/**
+ * Full page setup for a World-Bank-backed choropleth sample:
+ *   1. Mounts the page nav + title from the sample registry.
+ *   2. Fetches the indicator from the World Bank API, falling back to `config.fallback`.
+ *   3. Calls {@link renderMap} with the resolved data.
+ */
+export async function renderIndicatorMap(
+  config: IndicatorMapConfig
+): Promise<Highcharts.Chart> {
+  mountSamplePage(config.slug);
+
+  const filterKeys = new Set(config.fallback.map(([k]) => k));
+  let data: Array<[string, number]>;
+  try {
+    data = await fetchWorldBankIndicator({
+      indicator: config.indicator,
+      filterKeys,
+      valueTransform: config.valueTransform
+    });
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    console.warn(`[sample/${config.slug}] World Bank fetch failed; using fallback.`, err);
+    data = config.fallback;
+  }
+
+  return renderMap({ ...config, data });
+}

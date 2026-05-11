@@ -4,6 +4,7 @@
  * present and wires the display-mode toggle into the plugin options.
  */
 import Highcharts from 'highcharts/highmaps';
+import AccessibilityModule from 'highcharts/modules/accessibility';
 import AudiomPlugin, {
   SourceBackend
 } from '@xrnavigation/audiom-highcharts';
@@ -34,6 +35,10 @@ const AUDIOM_BASE_URL = 'https://audiom-staging.herokuapp.com';
 
 let initialized = false;
 let cachedDisplayMode: ReturnType<typeof setupDisplayModeToggle> | null = null;
+
+// Register the Highcharts accessibility module once. This adds ARIA roles,
+// keyboard navigation, and a screen-reader data table to every chart.
+AccessibilityModule(Highcharts);
 
 /**
  * Initialise the plugin (idempotent) and render the page's mode toggle.
