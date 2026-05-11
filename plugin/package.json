@@ -1,11 +1,11 @@
 {
   "name": "@xrnavigation/audiom-highcharts",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "type": "module",
   "description": "Highcharts plugin that adds Audiom audio accessibility to map charts.",
   "license": "UNLICENSED",
   "author": "XR Navigation Inc.",
-  "homepage": "https://github.com/xrnavigation/audiom-highcharts#readme",
+  "homepage": "https://github.com/xrnavigation/audiom-highcharts/tree/main/plugin#readme",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/xrnavigation/audiom-highcharts.git"
