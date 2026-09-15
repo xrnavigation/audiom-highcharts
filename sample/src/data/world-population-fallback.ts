@@ -13,7 +13,7 @@ export const WORLD_POPULATION_FALLBACK: Array<[string, number]> = [
   ['il',    9], ['jo',   10], ['az',   10], ['tj',   10], ['kw',    4],
   ['om',    5], ['tm',    6], ['kg',    7], ['lb',    7], ['ge',    4],
   ['am',    3], ['bh',    2], ['mn',    3], ['tw',   23], ['kr',   52],
-  ['ps',    5], ['sg',    6], ['yе',   33],
+  ['ps',    5], ['sg',    6], ['ye',   33],
   // Africa
   ['ng',  218], ['et',  123], ['eg',  110], ['cd',   99], ['tz',   63],
   ['za',   60], ['ke',   55], ['ug',   47], ['ao',   35], ['gh',   33],
@@ -34,7 +34,7 @@ export const WORLD_POPULATION_FALLBACK: Array<[string, number]> = [
   ['fi',    5], ['sk',    5], ['no',    5], ['ie',    5], ['hr',    4],
   ['md',    3], ['ba',    3], ['al',    3], ['lt',    3], ['mk',    2],
   ['lv',    2], ['si',    2], ['ee',    1], ['me',    1], ['xk',    2],
-  ['is',    0], ['lu',    1], ['cy',    1], ['mt',    1],
+  ['is',    1], ['lu',    1], ['cy',    1], ['mt',    1],
   // Americas
   ['br',  215], ['mx',  128], ['co',   52], ['ar',   46], ['pe',   33],
   ['ve',   29], ['cl',   19], ['ec',   18], ['gt',   17], ['hn',   10],

@@ -224,7 +224,9 @@ export async function renderIndicatorMap(
   } catch (err) {
     // eslint-disable-next-line no-console
     console.warn(`[sample/${config.slug}] World Bank fetch failed; using fallback.`, err);
-    data = config.fallback;
+    // Guard against non-positive fallback values — a logarithmic colour axis
+    // raises Highcharts error #10 on any value <= 0.
+    data = config.fallback.filter(([, v]) => v > 0);
   }
 
   return renderMap({ ...config, data });
