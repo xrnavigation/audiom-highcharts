@@ -24,7 +24,7 @@ example lives at
 
 ```sh
 npm install
-npm run dev:sample        # http://localhost:5173
+npm run dev:sample        # https://localhost:5173
 npm run test:plugin       # vitest
 npm run build:plugin      # rollup → plugin/dist
 ```
@@ -34,12 +34,18 @@ The dev server serves the pre-baked
 permissive CORS, so the Audiom iframe can fetch them directly without a
 runtime upload.
 
-> **Chrome Private Network Access** — if the Audiom iframe (served
-> from `https://audiom-staging.herokuapp.com`) cannot reach
-> `localhost:5173`, either disable the flag at
-> `chrome://flags/#local-network-access-check`, or supply a tunnel URL
-> (ngrok, localtunnel) via the `publicBase` option in
-> `sample/vite.config.ts`.
+> **Self-signed HTTPS on first run** — the dev server uses
+> [`@vitejs/plugin-basic-ssl`](https://github.com/vitejs/vite-plugin-basic-ssl)
+> to serve `https://localhost:5173`, because Audiom's rules loader
+> rejects non-HTTPS URLs. Brave/Chrome will show a "Your connection is
+> not private" page on the first visit — click **Advanced → Proceed to
+> localhost (unsafe)** once and the cert exception applies to
+> cross-origin fetches from the Audiom iframe as well.
+>
+> Alternatives: tunnel via ngrok/localtunnel and pass `publicBase` to
+> `audiomHighchartsDev()` in `sample/vite.config.ts`, or set
+> `VITE_AUDIOM_API_URL` / `VITE_AUDIOM_API_KEY` to route through
+> Audiom's own REST API (which returns HTTPS URLs).
 
 ---
 

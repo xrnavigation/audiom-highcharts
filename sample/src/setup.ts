@@ -12,6 +12,7 @@ import { uploadRules, type RulesKind } from './rules-upload';
 import { firstSourceUrl, mountViewGeoJSONLink } from './link-bar';
 import { mountSamplePage } from './sample-nav';
 import { fetchWorldBankIndicator } from './world-bank-client';
+import { SourceType } from '@xrnavigation/audiom-embedder/dist/AudiomSource';
 
 export type { RulesKind };
 
@@ -153,7 +154,7 @@ export async function renderMap(config: SampleMapConfig): Promise<Highcharts.Cha
       ...(useStatic ? {
         sources: [{
           source: staticGeojsonUrl!,
-          type: 'geojson',
+          type: SourceType.GeoJSON,
           rules: staticRulesUrl!
         } as IAudiomSource]
       } : {
