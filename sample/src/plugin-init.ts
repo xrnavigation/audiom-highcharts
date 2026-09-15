@@ -31,8 +31,8 @@ if (!SHARED_API_KEY) {
 // Where the Audiom embed is hosted. Switch to 'http://localhost:3000' when
 // running Audiom locally — loopback ↔ loopback fetches are exempt from
 // Chrome/Edge Private Network Access, so no tunnel is needed.
+//const AUDIOM_BASE_URL = 'https://audiom.net';
 const AUDIOM_BASE_URL = 'https://audiom-staging.herokuapp.com';
-
 let initialized = false;
 let cachedDisplayMode: ReturnType<typeof setupDisplayModeToggle> | null = null;
 

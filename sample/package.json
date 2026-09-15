@@ -9,13 +9,14 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@xrnavigation/audiom-highcharts": "*",
     "@xrnavigation/audiom-api-client": "^1.0.0",
     "@xrnavigation/audiom-embedder": "^1.0.0",
+    "@xrnavigation/audiom-highcharts": "*",
     "highcharts": "^11.4.0"
   },
   "devDependencies": {
-    "vite": "^5.4.0",
-    "typescript": "^5.4.0"
+    "@vitejs/plugin-basic-ssl": "^1.2.0",
+    "typescript": "^5.4.0",
+    "vite": "^5.4.0"
   }
 }
